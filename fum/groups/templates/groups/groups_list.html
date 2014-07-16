@@ -1,0 +1,33 @@
+{% extends 'groups.html' %}
+
+{% block body %}
+<h2>Groups</h2>
+
+<div>
+    <a href="{% url obj_add %}" class="create_btn btn btn-success">+</a>
+    <input type="text" class="search-query object-search">
+</div>
+
+<div class="clear"></div>
+
+<div>
+    <table class="listtable table table-striped">
+        <thead>
+            <tr>
+                <td class="dt-1"><strong>Group</strong></td>
+                <td class="dt-2"><strong>Description</strong></td>
+                <td class="dt-3"><strong>Editor group</strong></td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in object_list %}
+            <tr>
+                <td><a href="{% url "groups_detail" group.name %}">{{group}}</a></td>
+                <td>{{group.description}}</td>
+                <td>{{group.editor_group|default_if_none:""}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

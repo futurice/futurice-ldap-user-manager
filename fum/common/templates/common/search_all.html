@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<h2>Results</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <td><strong>Type</strong></td>
+            <td><strong>Name</strong></td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in result %}
+        <tr>
+            <td>{{item.model_name}}</td>
+            <td>
+            <a href="{{item.object.get_absolute_url}}">
+            {% if item.object.name %}
+            {{item.object.name}}
+            {% else %}
+            {{item.object.first_name}} {{item.object.last_name}}
+            {% endif %}
+            </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

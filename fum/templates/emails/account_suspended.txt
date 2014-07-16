@@ -1,0 +1,9 @@
+Hi, {{user.first_name}}!
+
+Your Futurice account has expired. 
+
+Please contact the IT-Team if you wish to have it re-enabled.
+
+
+- FUM, Futurice User Management
+https://fum.futurice.com

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block extra %}
+{{block.super}}
+{% assets 'js/users.js' %}
+{% endblock %}
+            
+{% block navibar %}
+<a class="btn active" href="{% url "users" %}">Users</a>
+<a class="btn" href="{% url "groups" %}">Groups</a>
+<a class="btn" href="{% url "servers" %}">Servers</a>
+<a class="btn" href="{% url "projects" %}">Projects</a>
+{% endblock %}

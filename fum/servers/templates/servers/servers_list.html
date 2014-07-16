@@ -1,0 +1,33 @@
+{% extends 'servers.html' %}
+
+{% block body %}
+<h2>Servers</h2>
+
+<div>
+    <a href="{{ settings.VIMMA_URL }}" target="_blank" class="create_btn btn btn-success">+</a>
+    <input type="text" class="search-query object-search">
+</div>
+
+<div class="clear"></div>
+
+<div>
+    <table class="listtable table table-striped">
+        <thead>
+            <tr>
+                <td class="dt-1"><strong>Server</strong></td>
+                <td class="dt-2"><strong>Description</strong></td>
+                <td class="dt-3"><strong>Editor group</strong></td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for server in object_list %}
+            <tr>
+                <td><a href="{% url "servers_detail" server.name %}">{{server}}</a></td>
+                <td>{{server.description}}</td>
+                <td>{{server.editor_group|default_if_none:""}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,232 @@
+{% extends 'users.html' %}
+{% block body %}
+{% load tags %}
+{% load staticfiles %}
+
+{% url "users-list" as alist %}
+{% url "users-detail" object as adetail %}
+
+<h3 class="user-header">{{ object.first_name}} {{object.last_name}} ({{object.username}})
+</h3>
+{% if sudo %}
+<div class="badge-button">
+    <a href="{{settings.BADGE_URL}}{{object}}" target="_blank" role="button" class="btn btn-info" data-toggle="modal">Create badge</a>
+</div>
+{% endif %}
+<div class="clear"></div>
+
+<div class="modal hide fade" id="password-modal">
+  <div class="modal-header">
+    <h3>Change password{% if sudo %} (for user {{object.username}}) {% endif %}</h3>
+  </div>
+  <div class="modal-body">
+    {% if sudo %}
+        <a href="{% url "users-changepassword" object.username %}" id="sudo_change_password">SUDO: Change to a random password and send it via SMS</a>
+    {% endif %}
+
+    {% if not sudo %}
+        <label>Current password</label>
+        <input type="password" id="password-current"></input>
+    {% endif %}
+    <label>New password</label>
+    <input type="password" id="password-new"></input>
+    <div id="password-status"></div>
+    <label>Again</label>
+    <input type="password" id="password-new-again"></input>
+    <div id="password-status-again"></div>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal" id="password-cancel">Cancel</a>
+    <a href="#" class="btn btn-warning" data-url="{% url "users-password" object.username %}" id="password-change" disabled>Save password</a>
+  </div>
+</div>
+
+<div class="modal hide fade" id="portrait-modal">
+  <div class="modal-header">
+    <h3>Crop the image <span id="portrait-dimensions"></span></h3>
+  </div>
+  <div class="modal-body" id="portrait-preview">
+    <img id="portrait-preview-crop" src=""></img>
+  </div>
+  <div class="modal-footer" id="portrait-footer">
+    <span id="portrait-crop-info"></span>
+    <a href="https://confluence.futurice.com/display/usup/Personal+ID+badge" target="_blank">What kind of picture can be used?</a>
+    <a href="#" class="btn" data-dismiss="modal" id="portrait-cancel">Cancel</a>
+    <a href="#" class="btn btn-primary" data-url="{% url "users-portrait" object.username %}" id="portrait-save">Save</a>
+  </div>
+</div>
+
+<table class="table" id="userform">
+    <div id="portrait-holder">
+        <img src='{{ object.portrait_thumb_url }}' onerror='this.src="{% static "img/default_portrait.jpeg" %}";' alt="{{object.username}} portrait" id="portrait"></img>
+        <input type="file" id="portrait-upload-file"/>
+        <i id="portrait-upload" title="upload a new image" class="icon-wrench"></i>
+        <a id="portrait-download" title="download full size image" class="icon-circle-arrow-down" target="_blank" href='{{ object.portrait_full_url }}' {% if '/None' in object.portrait_full_url %} style="visibility:hidden;" {% endif %}></a>
+        <span id="portrait-upload-time" title='{{ object.picture_uploaded_date|date:"H:i:s" }}'>{{ object.picture_uploaded_date|date:"Y/m/d" }}</span>
+    </div>
+
+	<tr>
+        {% include "common/xeditable.html" with field="first_name" full="First Name" api=adetail %}
+	</tr>
+
+	<tr>
+        {% include "common/xeditable.html" with field="last_name" full="Last Name" api=adetail %}
+	</tr>
+
+	<tr>
+		<td class="infofield">Username:</td>
+		<td id="profile-username">{{object.username}}</td>
+	</tr>
+
+	<tr>
+        {% include "common/xeditable.html" with field="title" full="Title" api=adetail %}
+	</tr>
+
+	<tr>
+        {% include "common/xeditable.html" with field="phone1" full="Phone 1" api=adetail %}
+	</tr>
+
+	<tr>
+        {% include "common/xeditable.html" with field="phone2" full="Phone 2" api=adetail %}
+	</tr>
+
+	<tr>
+        {% include "common/xeditable.html" with field="skype" full="Skype" api=adetail %}
+	</tr>
+
+    <tr>
+        {% include "common/xeditable.html" with field="email" field_value="get_email" full="Email" api=adetail %}
+    </tr>
+
+    <tr>
+        {% include "common/xeditable_search.html" with field="aliases" full="Aliases" api=adetail %}
+    </tr>
+
+    <tr>
+        <td class="infofield">Supervisor:</td>
+        <td>
+            <input type="hidden" class="bigdrop" id="xsupervisor" style="width:300px" value="{{object.supervisor_id|default:''}}" data-initial="{{object.supervisor.username}}"/>
+            {% if object.supervisor_id %}
+                <a href="{% url "users_detail" object.supervisor.username %}" style="padding-left: 10px;">{{object.supervisor}}</a>
+            {% endif %}
+        </td>
+    </tr>
+
+	<tr>
+        {% include "common/xeditable.html" with field="hr_number" full="HR number" api=adetail %}
+	</tr>
+
+    <tr>
+        <td class="infofield">Status:</td>
+        <td>
+            <div class="user-status-container">
+                <span href="#" id="status" class="{%if sudo%}xeditable{%else%}nosudo{%endif%} status-{{object.get_status}}"
+                    data-type="select"
+                    data-url="{% url "users-status" object.username %}"
+                    data-value="{{object.get_status}}"
+                    data-title="Status"
+                    data-source="{{object.status_choices_xeditable|safe}}">
+                    {{object.get_status|capfirst}}
+                </span>
+            </div>
+        </td>
+    </tr>
+
+    <tr>
+        {% include "common/xeditable.html" with field="google_status" full="Google Status" api=adetail  datatype="select" source=object.google_status_choices_xeditable|safe %}
+    </tr>
+
+	<tr>
+        {% include "common/xeditable.html" with field="active_in_planmill" full="Active in Planmill" api=adetail datatype="select" source=object.planmill_status_choices_xeditable|safe value=object.active_in_planmill|xeditable_value setvalue=1 %}
+	</tr>
+
+	<tr>
+		<td class="infofield">Password expires:</td>
+        <td class="{% warncolor object.password_expires_date 0 30 %}">
+            <span class="password_expiration_date">
+                {{object.password_expires_date|date:"Y/m/d"}}
+            </span>
+            {% editable object 'password' as password %}
+            {% if password %}
+                <a href="#password-modal" role="button" class="btn btn-info btn-small" data-toggle="modal">Change password</a>
+            {%endif%}
+        </td>
+	</tr>
+
+    {% if sudo %}
+    <tr>
+        <td>Disable on date:</td>
+        <td><a href="#" id="suspended_date" class="xeditable" data-type="date" data-url="{% url "users-detail" object.username %}" data-value="{{object.suspended_date|date:"Y-m-d"}}" data-title="Suspended date" data-format="yyyy-mm-dd">{{object.suspended_date|date:"Y-m-d"}}</a></td>
+    </tr>
+    {% endif %}
+
+    <tr>
+        <td class="infofield"></td>
+        <td>
+            <a class="btn btn-info" href="{{object.audit_url}}">Audit Log</a>
+        </td>
+    </tr>
+</table>
+
+<div class="row-fluid">
+    <div class="span4 marcopolofield"
+        data-parent="users"
+        data-child="groups"
+        data-parentid="{{object.username}}"
+        data-field="username"
+        data-searchurl="{% url "groups_json" %}"
+        data-searchdetail="groups_detail">
+
+		<h4>Groups:</h4>
+		<div class="input-prepend">
+		  	<span class="add-on">+</span>
+			<input type="text" class="search" />
+		</div>
+		<table class="table table-striped"></table>
+	</div>
+
+    <div class="span4 marcopolofield"
+        data-parent="users"
+        data-child="projects"
+        data-parentid="{{object.username}}"
+        data-field="username"
+        data-searchurl="{% url "projects_json" %}"
+        data-searchdetail="projects_detail">
+
+		<h4>Projects:</h4>
+		<div class="input-prepend">
+		  	<span class="add-on">+</span>
+			<input type="text" class="search">
+		</div>
+        <table class="table table-striped"></table>
+	</div>
+
+    <div class="span4 marcopolofield"
+        data-parent="users"
+        data-child="servers"
+        data-parentid="{{object.username}}"
+        data-field="username"
+        data-searchurl="{% url "servers_json" %}"
+        data-searchdetail="servers_detail">
+
+		<h4>Servers:</h4>
+		<div class="input-prepend">
+		  	<span class="add-on">+</span>
+			<input type="text" class="search">
+		</div>
+		<table class="table table-striped"></table>
+	</div>
+
+</div>
+
+<div class="row-fluid">
+    <div class="span6">
+        <h4>Resources: <button class="btn btn-success resource-add">+</button></h4>
+        <div class="resource-container"
+            data-parent="users"
+            data-field="username"
+            data-parentid="{{object.username}}">
+        </div>
+    </div>
+</div>
+{% endblock %}

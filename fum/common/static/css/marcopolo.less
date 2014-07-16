@@ -1,0 +1,84 @@
+/* The input.
+input.mp_input {
+  border: 1px solid #000000;
+  font: inherit;
+  font-size: 100%;
+  margin: 0;
+  outline: none;
+  padding: 3px;
+  width: 250px;
+} */
+
+/* Ordered list for display results. */
+ol.mp_list {
+  background-color: #FFFFFF;
+  border-left: 1px solid #C0C0C0;
+  border-right: 1px solid #C0C0C0;
+  overflow: hidden;
+  position: absolute;
+  min-width: 200px;
+  z-index: 99999;
+  font-size: 14px !important;
+  
+}
+
+#id_q {
+  width: 300px;
+}
+.input-append {
+  .mp_list {
+    margin-left: 13px;
+    width: 315px;
+  }
+}
+
+.input-prepend {
+  .mp_list {
+    margin-left: 27px;
+  }
+}
+
+/* Each list item, regardless of success, error, etc. */
+ol.mp_list li {
+  border-bottom: 1px solid #C0C0C0;
+  padding: 4px 4px 5px;
+  text-align: left;
+}
+
+/* Each list item from a successful request. */
+ol.mp_list li.mp_item {
+
+}
+
+/* Each list item that's selectable. */
+ol.mp_list li.mp_selectable {
+  cursor: pointer;
+}
+
+/* Currently highlighted list item. */
+ol.mp_list li.mp_highlighted {
+  background-color: #E0E0E0;
+}
+
+/* When a request is made that returns zero results. */
+ol.mp_list li.mp_no_results {
+
+}
+
+/* When a request is made that doesn't meet the 'minChars' length option. */
+ol.mp_list li.mp_min_chars {
+
+}
+
+/* When a request is made that fails during the ajax request. */
+ol.mp_list li.mp_error {
+
+}
+
+.input-prepend img {
+  display: none;
+}
+
+.mp_busy img {
+  display: inline;
+}

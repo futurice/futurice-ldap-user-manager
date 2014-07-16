@@ -1,0 +1,85 @@
+{% extends 'projects.html' %}
+{% block body %}
+{% load tags %}
+
+{% url "projects-list" as alist %}
+{% url "projects-detail" object as adetail %}
+{% url "groups-list" as glist %}
+
+{% sudomode as sudo %}
+{% if sudo %}
+{% include "common/deletegroup.html" %}
+<h3>{{ object.name}}&nbsp;<a href="#" id="delete-group" data-url="{% url "projects-detail" object %}" class="delete_btn btn btn-inverse">-</a></h3>
+{% else %}
+<h3>{{ object.name}}</h3>
+{% endif %}
+<br>
+
+{% if user.get_fum_user not in object.users.all %}
+    <a class="btn btn-primary join_this" data-parent="projects" data-child="users" data-parentid="{{object.name}}" data-field="name">Join this project</a>
+{% endif %}
+
+<table class="table">
+    <tr>
+        <td class="infofield">Name:</td>
+        <td id="name">{{object.name}}</td>
+    </tr>
+    <tr>
+        {% include "common/xeditable.html" with field="description" full="Description" api=adetail datatype='textarea' %}
+    </tr>
+
+    <tr>
+        {% include "common/xeditable.html" with field="editor_group" full="Editor group" api=adetail datatype='select2' select=glist|add:'?limit=0&fields=name' %}
+    </tr>
+
+    <tr>
+        {% include "common/xeditable.html" with field="email" field_value="get_email" full="Email" api=adetail %}
+    </tr>
+
+    <tr>
+        {% include "common/xeditable_search.html" with field="aliases" full="Aliases" api=adetail %}
+    </tr>
+
+    <tr>
+        <td class="infofield"></td>
+        <td>
+            <a class="btn btn-info" href="{{object.audit_url}}">Audit Log</a>
+        </td>
+    </tr>
+
+</table>
+
+<div class="row">
+    <div class="span6 marcopolofield"
+        data-parent="projects"
+        data-child="users"
+        data-parentid="{{object.name}}"
+        data-field="name"
+        data-searchurl="{% url "users_json" %}"
+        data-searchdetail="users_detail">
+
+        <h4>Users:</h4>
+
+        {% editable object 'users' as users %}
+        {% if users %}
+        <div class="input-prepend">
+            <span class="add-on">+</span>
+            <input type="text" class="search">
+            <img src="/static/img/loading.gif" alt="Loading">
+        </div>
+        {% endif %}
+        <table class="table table-striped">
+            
+        </table>
+    </div>
+
+    <div class="span6">
+        <h4>Resources: <button class="btn btn-success resource-add">+</button></h4>
+        <div class="resource-container"
+            data-parent="projects"
+            data-field="name"
+            data-parentid="{{object.name}}">
+        </div>
+    </div>
+</div>
+{% endblock %}  

@@ -1,0 +1,68 @@
+generate:
+
+- js/base.js:
+    source:
+    - fum/common/static/js/jquery-1.10.1.js
+    - fum/common/static/js/underscore.js
+    - fum/common/static/js/jquery.cookie.js
+    - fum/common/static/js/dutils.js
+    - fum/common/static/js/dutils.conf.urls.js
+    - fum/common/static/js/bootstrap.js
+    - fum/common/static/js/bootstrap-editable.js
+    - fum/common/static/js/select2.js
+    - fum/common/static/js/jquery.marcopolo.min.js
+    - fum/common/static/js/jquery.form.js
+    - fum/common/static/js/jquery.datatables.js
+    - fum/common/static/js/jquery.chosen.js
+    - fum/common/static/js/utils.js
+    - fum/common/static/js/main.js
+    - fum/common/static/js/search.js
+    - fum/common/static/js/createuser.js
+    - fum/common/static/js/jquery.imgareaselect.js
+    - fum/common/static/js/resources_widget.js
+    - fum/common/static/js/photo.js
+    - fum/common/static/js/marcopolo2.js
+    uglify.bin: jsmin
+
+- js/base_post.js:
+    source:
+    - fum/common/static/js/resources.js
+    uglify.bin: jsmin
+
+- js/users.js:
+    source:
+    - fum/common/static/js/users.js
+    uglify.bin: jsmin
+
+- js/servers.js:
+    source:
+    - fum/common/static/js/servers.js
+    uglify.bin: jsmin
+
+- js/projects.js:
+    source:
+    - fum/common/static/js/projects.js
+    uglify.bin: jsmin
+
+- js/groups.js:
+    source:
+    - fum/common/static/js/groups.js
+    uglify.bin: jsmin
+        
+- css/base.css:
+    source:
+    - fum/common/static/css/bootstrap.css
+    - fum/common/static/css/bootstrap-editable.css
+    - fum/common/static/css/select2.css
+    - fum/common/static/css/chosen.css
+    - fum/common/static/css/marcopolo.less
+    - fum/common/static/css/main.less
+    - fum/common/static/css/imgareaselect-animated.css
+
+output.directory: static
+output.hashed: true
+output.manifest: assets.json
+
+profile.dev:
+    css.compress: false
+    js.compress: false

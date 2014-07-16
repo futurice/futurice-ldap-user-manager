@@ -1,0 +1,14 @@
+{% load tags %}
+
+{% editable object field as x %}
+<td class="infofield">{{full}}:</td>
+<td>
+{% if x %}
+<a href="#" id="{{field}}" class="xeditable" data-type="{{datatype|default:'text'}}" data-url="{{api}}" data-value="{% if setvalue %}{{value}}{%else%}{% lookup object field_value|default:field %}{%endif%}" data-title="{{full}}" {% if source %} data-source="{{source}}"{% endif %} data-select="{{select}}">
+    {% lookup object field_value|default:field %}
+    </a>
+{% else %}
+    {% lookup object field_value|default:field %}
+{% endif %}
+
+</td>

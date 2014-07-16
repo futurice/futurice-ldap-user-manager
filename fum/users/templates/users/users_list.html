@@ -1,0 +1,35 @@
+{% extends 'users.html' %}
+{% load staticfiles tags %}
+
+{% block body %}
+<h2>Users</h2>
+<div>
+    <a href="{% url obj_add %}" class="create_btn btn btn-success">+</a>
+    <input type="text" class="search-query object-search">
+</div>
+
+<div class="clear"></div>
+
+<div>
+    <table class="listtable table table-striped table-hover">
+        <thead>
+            <tr>
+                <td class="dt-1"><strong>User</strong></td>
+                <td class="dt-2"><strong>Title</strong></td>
+                <td class="dt-3"><strong>Username</strong></td>
+                <td class="dt-4"><strong>Google Status</strong></td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in object_list %}
+            <tr class="status-{% lookup user "google_status" %}">
+                <td><a href="{% url "users_detail" user.username %}">{{user.first_name}} {{user.last_name}}</a></td>
+                <td>{{user.title}}</td>
+                <td>{{user.username}}</td>
+                <td class="capitalize">{% lookup user "google_status" %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

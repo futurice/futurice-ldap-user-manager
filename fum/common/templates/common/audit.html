@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+{% block body %}
+<h1>Audit {{header}} <a href="{{target.get_absolute_url}}">{{target.get_absolute_name|default:target}}</a></h1>
+
+{% if not uid and target.username %}
+<a class="btn btn-info" href="{{target.audit_by_url}}">Actions by User</a>
+{% elif uid and target.username %}
+<a class="btn btn-info" href="{{target.audit_url}}">Audit</a>
+{% endif %}
+
+<table class="table table-striped table-hover">
+<thead>
+    <tr>
+        <td class="dt-1"><strong>User</strong></td>
+        <td class="dt-1"><strong>Date</strong></td>
+        <td class="dt-2"><strong>What</strong></td>
+    </tr>
+</thead>
+<tbody>
+{% for k in logs %}
+    <tr>
+        <td>{% if k.uid %}<a href="{% url "users_detail" k.get_user.username|default:'notfound' %}">{{k.get_user.get_absolute_name}}</a>{% else %}--{% endif %}</td>
+        <td>{{k.timestamp}}</td>
+        <td {% if k.roid %}style="background-color: lightblue"{% endif %}>
+            {% with data=k.fmt %}
+                {{data.operation|upper}} <a href="{{data.target.get_absolute_url}}">{{data.target.get_absolute_name}}</a><br/>
+                {% for change in data.diff %}
+                    <b>{{change.0}}</b><br/>
+                    {{change.1|safe}}
+                {% endfor %}
+            {% endwith %}
+        </td>
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+
+
+<div>
+LEGEND: A row with a lightblue background means a related object was worked with.
+</div>
+
+{% endblock %}

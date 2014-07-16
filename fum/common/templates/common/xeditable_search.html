@@ -1,0 +1,15 @@
+{% load tags %}
+
+<td class="infofield">{{full}}:</td>
+<td>
+    {% editable object field as x %}
+    {% if x %}
+    <div class="input-append">
+        <input type="text" id="{{field}}-input" class="" data-url="{{api}}{{field}}/">
+        <a class="btn" id="add-{{field}}">Add</a>
+    </div> 
+    {% endif %}
+
+    <table class="table table-striped" id="{{field}}-table" data-url="{{api}}{{field}}/">
+    </table>
+</td>

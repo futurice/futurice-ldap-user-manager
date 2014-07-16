@@ -1,0 +1,17 @@
+{% extends 'users.html' %}
+{% load crispy_forms_tags %}
+{% load tags %}
+
+{% block body %}
+
+<div class="row-fluid">
+    <div class="span12">
+    <div id="create-status">
+        <div class="progress progress-striped active">
+            <div class="bar" style="width: 0%"></div>
+        </div>
+    </div>
+        {% crispy form %}
+    </div>
+</div>
+{% endblock %}

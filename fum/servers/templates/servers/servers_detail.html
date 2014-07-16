@@ -1,0 +1,88 @@
+{% extends 'servers.html' %}
+{% block body %}
+{% load tags %}
+
+{% url "servers-list" as alist %}
+{% url "servers-detail" object as adetail %}
+{% url "groups-list" as glist %}
+
+<h3>{{ object.name}}</h3>
+<br>
+
+{% if user.get_fum_user not in object.users.all %}
+    <a class="btn btn-primary join_this" data-parent="servers" data-child="users" data-parentid="{{object.name}}" data-field="name">Join this server</a>
+{% elif user.get_fum_user not in object.sudoers.all %}
+    <a class="btn btn-primary join_this" data-parent="servers" data-child="sudoers" data-parentid="{{object.name}}" data-field="name">Join sudoers</a>
+{% endif %}
+
+<table class="table">
+    <tr>
+        <td class="infofield">Name:</td>
+        <td id="name">{{object.name}}</td>
+    </tr>
+    <tr>
+        {% include "common/xeditable.html" with field="description" full="Description" api=adetail datatype='textarea' %}
+    </tr>
+
+    <tr>
+        {% include "common/xeditable.html" with field="editor_group" full="Editor group" api=adetail datatype='select2' select=glist|add:'?limit=0&fields=name' %}
+    </tr>
+
+    <tr>
+        {% include "common/xeditable.html" with field="email" field_value="get_email" full="Email" api=adetail %}
+    </tr>
+
+    <tr>
+        {% include "common/xeditable_search.html" with field="aliases" full="Aliases" api=adetail %}
+    </tr>
+    <tr>
+        <td class="infofield"></td>
+        <td>
+            <a class="btn btn-info" href="{{object.audit_url}}">Audit Log</a>
+        </td>
+    </tr>
+</table>
+
+<div class="row">
+    <div class="span4 marcopolofield"
+        data-parent="servers"
+        data-child="users"
+        data-parentid="{{object.name}}"
+        data-field="name"
+        data-searchurl="{% url "users_json" %}"
+        data-searchdetail="users_detail">
+
+		<h4>Users:</h4>
+		<div class="input-prepend">
+		  	<span class="add-on">+</span>
+			<input type="text" class="search">
+		</div>
+		<table class="table table-striped"></table>
+	</div>
+
+    <div class="span4 marcopolofield"
+        data-parent="servers"
+        data-child="sudoers"
+        data-parentid="{{object.name}}"
+        data-field="name"
+        data-searchurl="{% url "users_json" %}"
+        data-searchdetail="users_detail">
+
+		<h4>Sudoers:</h4>
+		<div class="input-prepend">
+		  	<span class="add-on">+</span>
+			<input type="text" class="search">
+		</div>
+		<table class="table table-striped"></table>
+	</div>
+
+    <div class="span4">
+        <h4>Resources: <button class="btn btn-success resource-add">+</button></h4>
+        <div class="resource-container"
+            data-parent="servers"
+            data-field="name"
+            data-parentid="{{object.name}}">
+        </div>
+    </div>
+</div>
+{% endblock %}	

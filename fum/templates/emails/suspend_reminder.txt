@@ -1,0 +1,10 @@
+Hi, {{user.first_name}}!
+
+Your Futurice useraccount will be suspended on {{user.suspended_date|date:"r"}}. 
+
+Please contect the IT-Team if you wish to extend your account.
+
+
+- FUM, Futurice User Management
+https://fum.futurice.com
+

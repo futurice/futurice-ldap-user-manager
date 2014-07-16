@@ -1,0 +1,294 @@
+.infofield {
+  width: 150px;
+}
+
+#sudo-btn {
+ min-width: 28px;
+}
+
+#sudotime-ends {
+  display: none;
+}
+
+.icon-remove {
+  cursor: pointer;
+}
+
+#password-status, #password-status-again {
+  float: right;
+  width: 50%;
+}
+
+/* #####################
+ * This could be avoided by importing the bootstrap css as a less file.
+ */
+[class^="type-"],
+[class*=" type-"] {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  *margin-right: .3em;
+  line-height: 14px;
+  vertical-align: text-top;
+  background-image: url("../img/glyphicons-halflings.png");
+  background-position: 14px 14px;
+  background-repeat: no-repeat;
+}
+
+.icon-user {
+  background-position: -168px 0;
+}
+
+.icon-briefcase {
+  background-position: -432px -144px;
+}
+
+.icon-hdd {
+  background-position: 0 -144px;
+}
+
+.icon-th {
+  background-position: -240px 0;
+}
+
+/* 
+ * ######################
+ */ 
+
+.type-users {
+    .icon-user;
+}
+
+.type-groups {
+    .icon-th;
+}
+
+.type-projects {
+    .icon-briefcase;
+}
+
+.type-servers {
+    .icon-hdd;
+}
+
+body.superuser {
+  background-image: url("../img/skull.png");
+  background-repeat: no-repeat;
+  background-position: center 100px;
+}
+
+
+td.email-alias {
+  width: 35%;
+}
+
+tr.status-suspended {
+  a, td {
+    opacity: 0.5;
+  }
+}
+a.status-suspended {
+  opacity: 0.5;
+}
+
+.capitalize {
+  text-transform:capitalize;
+}
+
+/* #####################
+ * Portrait stuff begins
+ */
+
+#portrait {
+  width: 100%;
+  min-width: 140px;
+  height: 100%;
+  min-height: 140px;
+}
+
+#portrait-holder {
+  float: left;
+  margin-left: -170px;
+  max-width: 140px;
+}
+
+#portrait-holder span {
+  display: block;
+  margin-top: 2px;
+}
+
+#portrait-holder [class^="icon-"],
+#portrait-holder [class*=" icon-"] {
+  float:right;
+  margin: 5px;
+  cursor: pointer;
+}
+
+#portrait-upload-file {
+  display: none;
+}
+
+#portrait-modal {
+  width: 40%;
+  margin-left: 0px;
+  left: 30%;
+  height: 70%;
+  min-height: 600px;
+}
+
+#portrait-preview {
+  height: 80%;
+  max-height: 700px;
+}
+
+#portrait-preview-crop {
+  height: auto;
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#portrait-footer {
+  height: 30px;
+}
+
+#portrait-crop-info {
+  float: left;
+}
+
+/* Portrait stuff ends
+ * ###################
+ */
+
+
+.dataTables_filter {
+  text-align: center;
+}
+
+h2 {
+  float: left;
+}
+
+.create_btn, .object-search {
+  margin-top: 16px;
+  margin-left: 8px;
+}
+
+td strong {
+   cursor: default;
+}
+
+.table th,
+.table td {
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.dt-1 {
+ width: 30%;
+}
+
+.dt-2 {
+ width: 50%;
+}
+
+.dt-3 {
+ width: 20%;
+}
+
+input.ok {
+  border-color: rgba(126, 239, 104, 1.0);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(126, 239, 104, 0.6);
+  outline: 0 none;
+}
+
+p.fail {
+  color: red;
+}
+
+input.fail {
+  border-color: rgba(239, 104, 126, 1.0);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(126, 239, 104, 0.6);
+  outline: 0 none;
+}
+
+.editable-address {
+    display: block;
+    margin-bottom: 5px;  
+}
+
+.editable-address span {
+    width: 70px;  
+    display: inline-block;
+}
+
+.resource-entry {
+    border-color: gray;
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    cursor: auto;
+}
+
+.icon-wrench {
+    padding-right: 7px;
+}
+
+.clear {
+    clear: both;
+}
+
+.badge-button {
+    float: right;
+    width: 200px;
+    line-height: 40px;
+    margin: 10px 0px 10px 0px;
+    text-align: right;
+}
+
+.user-header {
+    float: left;
+}
+.user-status-container {
+    [class*="status-active"] {
+        color: green;
+        border-bottom: dashed 1px green;
+    }
+    [class*="status-disabled"] {
+        color: #c09853;
+        border-bottom: dashed 1px #c09853;
+    }
+    [class*="status-deleted"] {
+        color: red;
+        border-bottom: dashed 1px red;
+    }
+    [class*="nosudo"] {
+        border-bottom: solid 1px #fff;
+    }
+}
+
+.red {
+    color: red;
+}
+
+.yellow {
+    color: #c09853;
+}
+
+.green {
+    color: green;
+}
+
+.editable-empty {
+    &:focus, &:hover {
+    }
+}
+
+.password_expiration_date {
+    padding-right: 10px;
+
+}
