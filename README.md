@@ -1,68 +1,90 @@
-DATA MIGRATION
-==============
-You'll need a MySQL server where you can import the old fum3 database (/scripts/fum.sql; checkout ee92c90 or earlier)
-Default username and password can be found from the script (/scripts/data_migration.py)
-
-sh ./sync_data.sh
-
-
 INSTALL
 =======
 
-# Ubuntu packages:
-build-essential python-setuptools python-dev libldap2-dev libsasl2-dev libssl-dev
-
+```
+apt-get install build-essential python-setuptools python-dev libldap2-dev libsasl2-dev libssl-dev
 pip install -r requirements.txt
 npm install
-
 python manage.py runserver --nostatic
-- add REMOTE_USER=username in front to test "SSO" authentication locally
+```
 
-python manage.py collectstatic # rest_framework css/js
+Add `REMOTE_USER=username` in front to simulate authentication performed by web server.
 
-# BACKGROUND PROCESSES
-## LESS/JS bunding, and moving of APP/static to /static
-python watcher.py
+`python manage.py collectstatic` # rest_framework css/js
 
-# TESTING
-python manage.py test --settings=fum.settings.test
+Background processes
+--------------------
 
+LESS/JS bunding, and moving of APP/static to /static:
+
+`python watcher.py`
+
+Testing: 
+
+`python manage.py test --settings=fum.settings.test`
 
 SEARCH (Haystack + SOLR)
 ========================
+
 get solr and unzip:
+
+```
 wget http://www.nic.funet.fi/pub/mirrors/apache.org/lucene/solr/3.6.2/apache-solr-3.6.2.zip
 unzip apache-solr-3.6.2.zip
+```
 
 update solr schema:
+
+```
 python manage.py build_solr_schema > schema.xml
+```
 
 drop the schema to solr's conf folder:
+
+```
 cp schema.xml apache-solr-3.6.2/example/solr/conf/
+```
 
 create stopwords_en.txt:
+
+```
 cp apache-solr-3.6.2/example/solr/conf/stopwords.txt apache-solr-3.6.2/example/solr/conf/stopwords_en.txt
+```
 
 add the schema location to you PATH:
+
+```
 export PATH=$PATH:/../../apache-solr-3.6.2/example/solr/conf/
+```
 
 start solr:
+
+```
 java -jar /apache-solr-3.6.2/example/start.jar
+```
 
 update indexes:
-python ./manage.py update_index
 
-and start searching :-)
+```
+python ./manage.py update_index
+```
+
+and start searching.
 
 
 DEPLOY
 ======
+
+```
 fab production <COMMAND>
  deploy
  reset_and_sync
+```
 
 PRODUCTION SERVER SETUP
 =======================
+
+```
 apt-get install \
 build-essential python-setuptools python-dev \
 git git-core curl \
@@ -85,13 +107,16 @@ apt-get install python-software-properties python g++ make
 add-apt-repository ppa:chris-lea/node.js
 apt-get update
 apt-get install nodejs
-
+```
 
 CRON REMINDERS
 ==============
 
 Check for expiring passwords:
+
+```
 python manage.py remind (--dry-run)
+```
 
 This should be ran once a day and sends a reminder at 30 days, 2 weeks and every day for the last week.
 A final notice is sent once the password has expired.
