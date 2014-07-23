@@ -27,7 +27,7 @@ def get_google_enum(status):
         if t[1] == status:
             ret = t[0]
             break
-    return int(ret)
+    return ret
 
 class Command(BaseCommand):
     help = 'Data migration'

@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 from django.conf import settings
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -7,7 +9,7 @@ import daemon, time, logging, subprocess, os
 
 logging.basicConfig(level=logging.INFO)
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "fum.settings.local")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "fum.settings.base")
 
 BLACKLIST = ['/.git','.git','.log','dist/','logs/','/tests','.db', settings.MEDIA_ROOT.rstrip('/'), settings.STATIC_ROOT.rstrip('/'),]
 def blacklisted(path):
@@ -57,6 +59,19 @@ class CollectStaticHandler(FileSystemEventHandler):
 
 if __name__ == "__main__":
     print "Watcher Online."
+
+    # Ensure we're not in an invalid state. assetgen keeps state in /tmp
+    # which tells it not to generate e.g. assets.json next time you run it.
+    # If you deleted assets.json, the werserver will serve errors and you
+    # won't be able to fix this even by cleaning and rebuilding the entire
+    # repository: because assetgen's /tmp state tells it not to rebuild
+    # assets.json.
+    #
+    # 'assetgen --nuke' would be better but it also deletes the work done by
+    # 'manage.py collectstatic'.
+    subprocess.check_call(['assetgen', '--force',
+        '--profile', 'dev', 'assetgen.yaml'])
+
     observer = Observer()
     observer.schedule(CollectStaticHandler(), path='.', recursive=True)
 
@@ -70,5 +85,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
-
-
