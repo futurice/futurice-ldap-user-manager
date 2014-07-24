@@ -148,19 +148,19 @@ class Command(BaseCommand):
             user.save()
             email_address = clean_email(val(v,'mail'))
             if email_address:
-                email = EMails(address=email_address,content_object=user)
-                email.save()
-                # process email aliases also
-                if 'proxyaddress' in v:
-                    for proxy in v['proxyaddress']:
-                        if not isEmailAddressValid(proxy):
-                            print "invalid email", proxy
-                            continue
-                        email_alias = EMailAliases(address=proxy,parent=email)
-                        try:
+                try:
+                    email = EMails(address=email_address,content_object=user)
+                    email.save()
+                    # process email aliases also
+                    if 'proxyaddress' in v:
+                        for proxy in v['proxyaddress']:
+                            if not isEmailAddressValid(proxy):
+                                print "invalid email", proxy
+                                continue
+                            email_alias = EMailAliases(address=proxy,parent=email)
                             email_alias.save()
-                        except (ValidationError, IntegrityError), e:
-                            print u, e
+                except (ValidationError, IntegrityError), e:
+                    print u, e
             elif 'proxyaddress' in v:
                 print "user "+user.username+" doesn't have a primary email, but still has email aliases... not good!"
 
