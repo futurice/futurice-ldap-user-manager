@@ -63,10 +63,12 @@ def create_mandatory_groups():
 import requests
 class SMS(object):
     def send(self, to, message):
-        params = {'to': to, 'text': message}
-        url = "https://backupmaster2.futurice.com:13013/cgi-bin/sendsms?username={0}&password={1}".format(
-                settings.SMS_USER,
-                settings.SMS_PASSWORD)
+        params = {'to': to,
+                'text': message,
+                'username': settings.SMS_USER,
+                'password': settings.SMS_PASSWORD,
+                }
+        url = "https://backupmaster2.futurice.com:13013/cgi-bin/sendsms"
         response = LazyDict(dict(status_code=200, content='0: Delivered (DEBUG)', message=message, to=to))
         if not settings.DEBUG:
             response = requests.get(url, params=params, verify=False)
