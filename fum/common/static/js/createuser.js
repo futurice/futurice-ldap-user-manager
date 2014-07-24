@@ -1,11 +1,14 @@
 function umlaut(str) {
   return str
-  .replace(/â|à|å|ã|ä|á/ig, "a")
+  .replace(/â|à|å|ã|ä|á|ă/ig, "a")
   .replace(/ó|ö|ô|ò|õ|Ø/ig, "o")
   .replace(/ç/ig, "c")
   .replace(/é|ê|è|ë/ig, "e")
-  .replace(/š/ig, "s")
+  .replace(/ï|î|ì|í/ig, "i")
+  .replace(/ñ/ig, "n")
+  .replace(/š|ș|ş/ig, "s")
   .replace(/ß/ig, "ss")
+  .replace(/ț|ţ/ig, "t")
   .replace(/ú|û|ù|ü/ig, "u")
   .replace(/ý|ÿ/ig, "y")
   .replace(/ž/ig, "z");
