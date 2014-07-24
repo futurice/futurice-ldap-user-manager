@@ -252,6 +252,9 @@ DELETED_GROUP = 'Deleted'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap'
 
+SMS_USER = ''
+SMS_PASSWORD = ''
+
 try:
     # add any secrets here; local_settings needs to be somewhere in PYTHONPATH (eg. project-root, user-root)
     from local_settings import *
