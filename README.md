@@ -5,19 +5,21 @@ INSTALL
 apt-get install build-essential python-setuptools python-dev libldap2-dev libsasl2-dev libssl-dev
 pip install --allow-external PIL --allow-unverified PIL -r requirements.txt
 npm install
-python manage.py runserver --nostatic
+
+cp local_settings.py.template local_settings.py
+
+# Edit LDAP configuration.
+createdb fum	# If using PostgreSQL
+
+./manage.py syncdb
+./manage.py migrate
+./manage.py datamigrate
+
+./manage.py collectstatic --noinput	# rest_framework css/js
+
+PATH=./node_modules/.bin:$PATH ./watcher.py	# LESS/JS bunding, and moving of APP/static to /static
+REMOTE_USER=x ./manage.py runserver --nostatic
 ```
-
-Add `REMOTE_USER=username` in front to simulate authentication performed by web server.
-
-`python manage.py collectstatic` # rest_framework css/js
-
-Background processes
---------------------
-
-LESS/JS bunding, and moving of APP/static to /static:
-
-`python watcher.py`
 
 Testing: 
 

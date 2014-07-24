@@ -1,0 +1,39 @@
+LDAP_CONNECTION = {
+    'uri': "",
+    'bind_dn': "",
+    'bind_pwd': "",
+    'base_dn': "",
+}
+
+LDAP_MOCK = True
+CHANGES_SOCKET_ENABLED = True
+
+URLS_BASE = '' # fum.futurice.com/fum/
+
+API_URL = 'http://localhost:8000'
+
+MIGRATION = {
+    'LDAP': {
+        'uri': LDAP_CONNECTION['uri'],
+        'bind_dn': LDAP_CONNECTION['bind_dn'],
+        'bind_pwd': LDAP_CONNECTION['bind_pwd'],
+    },
+
+    # MySQL is not used anymore, but some code still uses these keys
+    'MYSQL': {
+        'uri': "localhost",
+        'port': 0,
+        'user': "dummy",
+        'pw': "dummy",
+        'db': "dummy",
+    }
+}
+
+DATABASES = {
+    # PostgreSQL
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'fum',
+        'HOST': 'localhost',
+    }
+}
