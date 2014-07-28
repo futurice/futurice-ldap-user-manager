@@ -24,10 +24,13 @@ def projects_email(sender, *args, **kwargs):
     from fum.projects.util import name_to_email
     instance = kwargs['instance']
     if kwargs.get('created', False):
-        e,_ = EMails.objects.get_or_create(
-                object_id=instance.pk,
-                content_type=ContentType.objects.get_for_model(instance),
-                address=name_to_email(instance.name))
+        try:
+            e,_ = EMails.objects.get_or_create(
+                    object_id=instance.pk,
+                    content_type=ContentType.objects.get_for_model(instance),
+                    address=name_to_email(instance.name))
+        except ValueError:
+            log.exception('While saving email:')
 
 #
 # post_delete
