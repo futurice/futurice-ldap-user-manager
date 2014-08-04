@@ -1,3 +1,11 @@
+DESCRIPTION
+===========
+**FUM** is a user management system using LDAP. It's meant for managing groups, projects, teams and servers at your organization.
+
+BACKGROUND
+==========
+**FUM** was created as an internal support system at [Futurice](http://www.futurice.com). It was open sourced as a part of the [Summer of Love](http://blog.futurice.com/summer-of-love-of-open-source) program.
+
 INSTALL
 =======
 
@@ -130,3 +138,11 @@ If you're getting "No more space on device" errors when running the watcher.py o
 ```bash
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 ```
+
+ABOUT FUTURICE
+==============
+[Futurice](http://www.futurice.com) is a lean service creation company with offices in Helsinki, Tampere, Berlin and London.
+
+SUPPORT
+=======
+Pull requests and new issues are of course welcome. If you have any questions, comments or feedback you can contact us by email at sol@futurice.com. We will try to answer your questions, but we have limited manpower so please, be patient with us.
