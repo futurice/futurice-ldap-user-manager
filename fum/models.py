@@ -310,7 +310,7 @@ class BaseGroup(LDAPModel):
                 'description':'description',}
     # remove sambaGroupMapping only after sambaGroupType,sambaSID removed in LDAP for every entry
     ldap_object_classes = ['top', 'posixGroup', 'groupOfUniqueNames', 'mailRecipient', 'google', 'sambaGroupMapping']
-    ldap_base_dn='ou=Groups,dc=futurice,dc=com'
+    ldap_base_dn = settings.GROUP_DN
     ldap_id_number_field='gidNumber'
     ldap_range=[2000,3000]
 
@@ -568,7 +568,7 @@ class Users(LDAPModel):
     restricted_fields = ['username','phone1','phone2','google_status','suspended_date','password','active_in_planmill','hr_number',]
     # remove kerberos entries only after all People in LDAP purged of krb* data
     ldap_object_classes = ['inetOrgPerson', 'ntUser', 'account', 'hostObject', 'posixAccount', 'shadowAccount', 'sambaSamAccount', 'organizationalPerson', 'top', 'person', 'google','krbprincipalAux','krbTicketPolicyAux']
-    ldap_base_dn='ou=People,dc=futurice,dc=com'
+    ldap_base_dn=settings.USER_DN
     ldap_id_number_field='uidNumber'
     ldap_range=[2000,3000]
 
@@ -673,14 +673,14 @@ class Servers(BaseGroup):
     ldap_object_classes = copy.deepcopy(BaseGroup.ldap_object_classes)
     ldap_object_classes.append('labeledURIObject')
     ldap_range = [5000, 6000]
-    ldap_base_dn = "ou=Hosts,ou=Groups,dc=futurice,dc=com"
+    ldap_base_dn = settings.SERVER_DN
     ldap_fields = copy.deepcopy(BaseGroup.ldap_fields)
 
     def get_absolute_url(self):
         return reverse('servers_detail', kwargs={'slug':self.name})
 
     def get_ldap_sudoers_dn(self):
-        return 'cn=%s,ou=SUDOers,dc=futurice,dc=com'%self.get_ldap_id_value()
+        return 'cn={0},{1}'.format(self.get_ldap_id_value(), settings.SUDO_DN)
 
     def create_static_fields(self, ldap_id_number):
         static_attrs = super(Servers, self).create_static_fields(ldap_id_number)
@@ -701,7 +701,7 @@ class Projects(BaseGroup):
     ldap_object_classes = copy.deepcopy(BaseGroup.ldap_object_classes)
     ldap_object_classes.append('labeledURIObject')
 
-    ldap_base_dn = 'ou=Projects,ou=Groups,dc=futurice,dc=com'
+    ldap_base_dn = settings.PROJECT_DN
     ldap_range = [4000, 5000]
 
     def clean(self):

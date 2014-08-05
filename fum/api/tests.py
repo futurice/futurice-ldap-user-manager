@@ -37,20 +37,20 @@ update_nonexisting=[(2, 'nothere', '2'),]
 add_empty=[(0, 'description', 'Blaa'),]
 update_empty=[(2, 'description', 'Blaa'),]
 
-add_user=[(0, 'uniqueMember', 'uid=hhol,ou=People,dc=futurice,dc=com'),]
-add_user_two=[(0, 'uniqueMember', 'uid=mmal,ou=People,dc=futurice,dc=com'),]
-add_user_three=[(0, 'uniqueMember', 'uid=mvih,ou=People,dc=futurice,dc=com'),]
+add_user=[(0, 'uniqueMember', 'uid=hhol,{0}'.format(settings.USER_DN)),]
+add_user_two=[(0, 'uniqueMember', 'uid=mmal,{0}'.format(settings.USER_DN)),]
+add_user_three=[(0, 'uniqueMember', 'uid=mvih,{0}'.format(settings.USER_DN)),]
 
-replace_user=[(2, 'uniqueMember', 'uid=hhol,ou=People,dc=futurice,dc=com'),]
-replace_user_two=[(2, 'uniqueMember', 'uid=mmal,ou=People,dc=futurice,dc=com'),]
+replace_user=[(2, 'uniqueMember', 'uid=hhol,{0}'.format(settings.USER_DN)),]
+replace_user_two=[(2, 'uniqueMember', 'uid=mmal,{0}'.format(settings.USER_DN)),]
 
-delete_user=[(1, 'uniqueMember', 'uid=hhol,ou=People,dc=futurice,dc=com'),]
+delete_user=[(1, 'uniqueMember', 'uid=hhol,{0}'.format(settings.USER_DN)),]
 
 class RawLdapTestCase(TestCase):
 
     def test_mod(self):
         l = ldap_cls(parent=None, LDAP_CLASS='fum.ldap_helpers.LDAPBridge')
-        dn = 'cn=TestGroup,ou=Projects,ou=Groups,dc=futurice,dc=com'
+        dn = 'cn=TestGroup,{0}'.format(settings.PROJECT_DN)
         try:
             l.connection.delete_s(dn)
         except ldap.NO_SUCH_OBJECT, e:
@@ -162,13 +162,13 @@ class PermissionTestCase(LdapSuite):
         super(PermissionTestCase, self).tearDown()
 
     def test_search(self):
-        results = self.user.ldap.fetch('ou=People,dc=futurice,dc=com', filters='(ou=*)', scope=ldap.SCOPE_BASE)
+        results = self.user.ldap.fetch(settings.USER_DN, filters='(ou=*)', scope=ldap.SCOPE_BASE)
         self.assertEqual(results['ou'], ['People'])
 
     def test_delete_bad_dn(self):
         ERROR_CODE = 105
         try:
-            self.assertEqual(ERROR_CODE, self.ldap.delete(dn="uid=ylamummo,ou=People,dc=futurice,dc=com")[0]) # mock
+            self.assertEqual(ERROR_CODE, self.ldap.delete(dn="uid=ylamummo,{0}".format(settings.USER_DN))[0]) # mock
         except ldap.NO_SUCH_OBJECT, e:
             self.assertTrue(1) # live
 
@@ -346,8 +346,8 @@ class LdapSanityCase(TestCase):
 
     data = [
     ("uid=fum3adm,ou=Administrators,ou=TopologyManagement,o=Netscaperoot", {"userPassword": ["njJc4RUWJVre"]}),
-    ("uid=ttes,ou=People,dc=futurice,dc=com", {"userPassword": ["secret"], "uidNumber": ["2001"],}),
-    ("uid=testuser,ou=People,dc=futurice,dc=com", {"userPassword": ["secret"], "uidNumber": ["2003"],}),
+    ("uid=ttes,{0}".format(settings.USER_DN), {"userPassword": ["secret"], "uidNumber": ["2001"],}),
+    ("uid=testuser,{0}".format(settings.USER_DN), {"userPassword": ["secret"], "uidNumber": ["2003"],}),
     ]
     directory = dict(data)
 
@@ -419,7 +419,7 @@ class LdapTestCase(LdapSuite):
         
 
     def test_save_sudoer(self):
-        data = ('cn=it-team,ou=SUDOers,dc=futurice,dc=com',
+        data = ('cn=it-team,{0}'.format(settings.SUDO_DN),
                 {'sudoHost': ['ALL'],
                 'sudoUser': ['ileh', 'ojar',],
                 'cn': ['it-team']})
@@ -1131,7 +1131,7 @@ class DataIntegrityTestCase(LdapTransactionSuite):
 
         server.delete()
         try:
-            self.ldap.fetch(dn='cn=AbSudoServer,ou=Hosts,ou=Groups,dc=futurice,dc=com', scope=ldap.SCOPE_BASE, filters='(cn=*)')
+            self.ldap.fetch(dn='cn=AbSudoServer,{0}'.format(settings.SERVER_DN), scope=ldap.SCOPE_BASE, filters='(cn=*)')
             self.assertEqual(True, False)
         except ldap.NO_SUCH_OBJECT:
             self.assertEquals(True, True)
@@ -1303,7 +1303,7 @@ class DataIntegrityTestCase(LdapTransactionSuite):
         self.assertTrue(Servers.objects.get(name=name))
 
         # add related user to LDAP
-        mlist = [(0, 'uniqueMember', ['uid=testuser,ou=People,dc=futurice,dc=com'])]
+        mlist = [(0, 'uniqueMember', ['uid=testuser,{0}'.format(settings.USER_DN)])]
         try:
             server.ldap.save_ext_raw(server.get_dn(), mlist)
         except ldap.TYPE_OR_VALUE_EXISTS, e:

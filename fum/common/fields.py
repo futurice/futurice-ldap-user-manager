@@ -33,7 +33,7 @@ class UsersManyField(LdapManyToManyField):
         return ("uid=%s,%s" % (child.get_ldap_id_value(), child.ldap_base_dn)).encode('utf-8')
 
 class SudoersManyField(LdapManyToManyField):
-    ldap_base_dn = 'ou=SUDOers,dc=futurice,dc=com'
+    ldap_base_dn = settings.SUDO_DN
     ldap_field = 'sudoUser'
     ldap_fields = {
             'a': 'sudoUser',

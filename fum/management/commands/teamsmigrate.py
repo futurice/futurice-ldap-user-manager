@@ -67,7 +67,7 @@ class Command(BaseCommand):
         pw = settings.MIGRATION['LDAP']['bind_pwd']
 
         # LDAP groups
-        group_base_dn = "ou=Teams,ou=Groups,dc=futurice,dc=com"
+        group_base_dn = settings.TEAM_DN
         group_filter = "(objectclass=posixGroup)"
         group_attrs = ['uniqueMember','description','mail','cn','gidNumber','editpermission','proxyaddress','sambaGroupType','sambaSID',]
 

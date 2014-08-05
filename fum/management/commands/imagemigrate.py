@@ -42,7 +42,7 @@ class Command(BaseCommand):
         con.simple_bind_s(dn,pw)
 
         # LDAP user's images
-        user_base_dn = "ou=people,dc=futurice,dc=com"
+        user_base_dn = settings.USER_DN
         user_filter = "(objectclass=person)"
         user_attrs = ['uid','jpegPhoto']
 

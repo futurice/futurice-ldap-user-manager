@@ -42,7 +42,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         log.info("Running")
         cleanup_cruft = [
-            'cn=PTestGroup,ou=Projects,ou=Groups,dc=futurice,dc=com'
+            'cn=PTestGroup,{0}'.format(settings.PROJECT_DN)
         ]
         instance = Groups()
         for dn in cleanup_cruft:
@@ -86,17 +86,17 @@ class Command(BaseCommand):
         pw = settings.MIGRATION['LDAP']['bind_pwd']
 
         # LDAP users
-        user_base_dn = "ou=people,dc=futurice,dc=com"
+        user_base_dn = settings.USER_DN
         user_filter = "(objectclass=person)"
         user_attrs = ['givenName','sn','uid','title','mail','telephoneNumber','mobile','googleStatus','sambaPwdMustChange','gidNumber','proxyaddress','uidnumber', 'shadowLastChange', 'shadowMax', 'physicalDeliveryOfficeName']
 
         # LDAP groups
-        group_base_dn = "ou=groups,dc=futurice,dc=com"
+        group_base_dn = settings.GROUP_DN
         group_filter = "(objectclass=posixGroup)"
         group_attrs = ['uniqueMember','description','mail','cn','gidNumber','editpermission','proxyaddress']
 
         # LDAP sudoers
-        sudoer_base_dn = "dc=futurice,dc=com"
+        sudoer_base_dn = settings.COMPANY_DN
         sudoer_filter = "(objectclass=sudoRole)"
         sudoer_attrs = ['sudoUser','sudoHost','cn']
 
