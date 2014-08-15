@@ -37,3 +37,14 @@ DATABASES = {
         'HOST': 'localhost',
     }
 }
+
+# Email settings
+EMAIL_DOMAIN = "@example.com"
+
+# General settings
+COMPANY_NAME = "Company"
+
+# SMS Settings
+SMS_URL = ''
+SMS_USER = ''
+SMS_PASSWORD = ''

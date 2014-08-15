@@ -69,10 +69,10 @@ class Command(BaseCommand):
                 if 'password' in args:
                     body = get_template('emails/password_reminder.txt')
                     days_left =  (user.password_expires_date - now).days
-                    subject = "Futurice password will expire in %d day%s."%(days_left, "s" if days_left!=1 else "")
+                    subject = "%s password will expire in %d day%s."%(settings.COMPANY_NAME, days_left, "s" if days_left!=1 else "")
                 
                     if days_left < 0:
-                        self.send(user, "Futurice password has expired.", get_template('emails/password_expired.txt'), dry)
+                        self.send(user, "%s password has expired."%(settings.COMPANY_NAME), get_template('emails/password_expired.txt'), dry)
                     elif days_left <= 7:
                         self.send(user, subject, body, dry)
                     elif days_left == 14:
@@ -95,7 +95,7 @@ class Command(BaseCommand):
             return
 
         context = Context({ 'user': user })
-        from_email ="fum@futurice.com"
+        from_email = 'fum{0}'.format(settings.EMAIL_DOMAIN)
         message = body.render(context)
 
         self.emailed.append((user, {'message': message, 'subject': subject}))
