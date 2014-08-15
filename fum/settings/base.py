@@ -219,21 +219,12 @@ LDAP_CONNECTION_OPTIONS = {
     ldap.OPT_NETWORK_TIMEOUT: float(LDAP_TIMEOUT),
     ldap.OPT_PROTOCOL_VERSION: ldap.VERSION3,
 }
-COMPANY_DN = 'dc=futurice,dc=com'
-GROUP_DN = 'ou=Groups,dc=futurice,dc=com'
-USER_DN = 'ou=People,dc=futurice,dc=com'
-SERVER_DN = 'ou=Hosts,ou=Groups,dc=futurice,dc=com'
-PROJECT_DN = 'ou=Projects,ou=Groups,dc=futurice,dc=com'
-SUDO_DN = 'ou=SUDOers,dc=futurice,dc=com'
-TEAM_DN = 'ou=Teams,ou=Groups,dc=futurice,dc=com'
 
 # CHANGES WEBSOCKET ENDPOINT
 CHANGES_SOCKET = '/tmp/fum3changes.sock'
 CHANGES_SOCKET_ENABLED = True
 CHANGES_FAILED_LOG = '/tmp/changes_failed.json'
 
-# The FUM admin team that has elevated permissions.
-IT_TEAM = "TeamIT"
 SUDO_TIMEOUT = 90#in minutes
 PROJECT_APPS = ['fum']
 

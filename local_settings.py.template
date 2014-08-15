@@ -37,3 +37,15 @@ DATABASES = {
         'HOST': 'localhost',
     }
 }
+
+# LDAP Settings
+COMPANY_DN = 'dc=company,dc=com'
+GROUP_DN = 'ou=Groups,dc=company,dc=com'
+USER_DN = 'ou=People,dc=company,dc=com'
+SERVER_DN = 'ou=Hosts,ou=Groups,dc=company,dc=com'
+PROJECT_DN = 'ou=Projects,ou=Groups,dc=company,dc=com'
+SUDO_DN = 'ou=SUDOers,dc=company,dc=com'
+TEAM_DN = 'ou=Teams,ou=Groups,dc=company,dc=com'
+
+# The name of the FUM admin team that has elevated permissions.
+IT_TEAM = "TeamIT"
