@@ -49,3 +49,15 @@ TEAM_DN = 'ou=Teams,ou=Groups,dc=company,dc=com'
 
 # The name of the FUM admin team that has elevated permissions.
 IT_TEAM = "TeamIT"
+
+# Email settings
+EMAIL_DOMAIN = "@example.com"
+
+# General settings
+COMPANY_NAME = "Company"
+
+# SMS Settings
+SMS_URL = ''
+SMS_USER = ''
+SMS_PASSWORD = ''
+
