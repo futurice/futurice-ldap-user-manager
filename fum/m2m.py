@@ -1,8 +1,9 @@
+from django.conf import settings
 from fum.ldap_helpers import ldap_cls, fetch
 
 class Sudoers(object):
     ldap_object_classes = ['top', 'sudoRole']
-    ldap_base_dn = "ou=SUDOers,dc=futurice,dc=com"
+    ldap_base_dn = settings.SUDO_DN
     ldap_filter = "(objectClass=sudoRole)"
     ldap_attrs = ['sudoUser', 'sudoHost', 'cn']
     ldap_id_field = "cn"

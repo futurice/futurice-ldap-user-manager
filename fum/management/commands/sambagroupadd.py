@@ -36,7 +36,7 @@ class Command(BaseCommand):
         con = open_ldap()
 
         # LDAP groups
-        group_base_dn = "ou=groups,dc=futurice,dc=com"
+        group_base_dn = settings.GROUP_DN
         group_filter = "(objectclass=posixGroup)"
         group_attrs = ['cn','objectClass', 'gidNumber']
 

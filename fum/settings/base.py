@@ -225,8 +225,6 @@ CHANGES_SOCKET = '/tmp/fum3changes.sock'
 CHANGES_SOCKET_ENABLED = True
 CHANGES_FAILED_LOG = '/tmp/changes_failed.json'
 
-# The FUM admin team that has elevated permissions.
-IT_TEAM = "TeamIT"
 SUDO_TIMEOUT = 90#in minutes
 PROJECT_APPS = ['fum']
 

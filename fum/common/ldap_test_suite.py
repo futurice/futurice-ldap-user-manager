@@ -24,7 +24,7 @@ class LdapFunctionality(object):
      - can be temporarily disabled by commenting out relevant lines in setUp, tearDown
     """
     data = [
-    ("ou=People,dc=futurice,dc=com", {'ou': ["People"]}),
+    (settings.USER_DN, {'ou': ["People"]}),
     ("cn=Manager,ou=example,o=test", {"userPassword": ["ldaptest"]}),
     ("cn=alice,ou=example,o=test", {"userPassword": ["alicepw"]}),
     ("cn=bob,ou=other,o=test", {"userPassword": ["bobpw"]}),
