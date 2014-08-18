@@ -13,12 +13,14 @@ from rest_framework.decorators import action, link
 from rest_framework.pagination import PaginationSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import JSONRenderer
 
 from serializers import *
 
 from fum.ldap_helpers import test_user_ldap
 from fum.models import EMailAliases, Resource, Users
 from fum.common.util import SMS, random_ldap_password
+from fum.api.serializers import UsersSerializer
 
 from ldap import CONSTRAINT_VIOLATION
 from datetime import datetime
@@ -387,7 +389,6 @@ class UsersViewSet(ListMixin, LDAPViewSet):
         else:
             return Response('Password generated, but SMS failed', status=200)
 
-
 class GroupsViewSet(ListMixin, LDAPViewSet):
     model = Groups
     serializer_class = GroupsSerializer
@@ -449,3 +450,16 @@ def userphoto(request, username, size='thumb'):
             url = u.default_thumb_url()
         cache.set(KEY, url, 3600)
     return HttpResponsePermanentRedirect(url)
+
+def list_employees(request):
+    KEY = 'list-employees'
+    data = cache.get(KEY)
+    if data is None:
+        groups = Groups.objects.filter(name__in=settings.EMPLOYEE_GROUPS)
+        rs = []
+        for group in groups:
+            for user in group.users.all():
+                rs.append(UsersSerializer(user).data)
+        data = JSONRenderer().render(rs)
+        cache.set(KEY, data, 1800)
+    return HttpResponse(data, mimetype='application/json')
