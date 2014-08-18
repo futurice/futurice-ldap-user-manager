@@ -107,6 +107,8 @@ FUM aka. Futurice User Management
 try { console.assert(1); } catch(e) { console = { log: function() {}, assert: function() {} } }
 var URLS_BASE='{{settings.URLS_BASE}}';
 var request_user = '{{request.user}}';
+var EMAIL_DOMAIN = '{{settings.EMAIL_DOMAIN}}';
+var COMPANY_NAME = "{{settings.COMPANY_NAME | escapejs}}";
 </script>
 {% assets 'js/base.js' %}
 
@@ -117,37 +119,7 @@ var request_user = '{{request.user}}';
 
 
 {% if not settings.DEBUG %}
-<!-- Piwik -->
-<script type="text/javascript">
-var pkBaseURL = (("https:" == document.location.protocol) ? "https://analytics.futurice.com/piwik/" : "http://analytics.futurice.com/piwik/");
-document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
-</script><script type="text/javascript">
-var piwikTracker;
-function piwik_init_and_track() {
- piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 5);
- var hash = decodeURIComponent(location.hash.substring(1)).replace("/fum/", "");
- if (hash.length > 0) {
-  hash = hash.split("/");
-  if (hash.length > 1) {
-   piwikTracker.setCustomVariable(1, "scope", hash[0], "page");
-   piwikTracker.setCustomVariable(2, "item", hash[1], "page");
-  }
- }
- piwikTracker.trackPageView();
- piwikTracker.enableLinkTracking();
-}
-try {
-piwik_init_and_track();
- $(document).ready(function() {
-  $(window).bind("hashchange", function(e) {
-   piwik_init_and_track();
-  });
- });
-} catch( err ) {console.log(err);}
-</script><noscript><p><img src="http://analytics.futurice.com/piwik/piwik.php?idsite=5" style="border:0" alt="" /></p></noscript>
-<!-- End Piwik Tracking Code -->
-
-<script src="https://login.futurice.com/static/js/login_ping.js" async></script>
+{% include "piwik.html" %}
 {% endif %}
 
 </body>
