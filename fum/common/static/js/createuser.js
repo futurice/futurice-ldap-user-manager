@@ -19,7 +19,7 @@ $(document).ready(function(){
 
   var primaryGroups = {
   "-1":{pre:"", name:""},
-  "2001":{pre:"", name:"Futurice"},
+  "2001":{pre:"", name:COMPANY_NAME},
   "2002":{pre:"", name:"External"},
   "2003":{pre:"c", name:"Customers"}
   };
@@ -31,7 +31,7 @@ $(document).ready(function(){
     var last = umlaut($('#id_last_name').val());
 
     if($('#id_first_name').val().length>0 && $('#id_last_name').val() && type !== "c") {
-      var email = first.toLowerCase()+"."+last.toLowerCase()+"@futurice.com";
+      var email = first.toLowerCase()+"."+last.toLowerCase()+EMAIL_DOMAIN;
       $('#id_email').val(email).trigger('change');
     }
 
