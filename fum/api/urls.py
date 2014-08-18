@@ -29,5 +29,6 @@ router_urls += related_urls
 urlpatterns = patterns('',
     url(r'^', include(router_urls)),
     url(r'^photo/(?P<username>\w+)/(?P<size>\w+)?', views.userphoto, name='api-user-photo'),
+    url(r'^list/employees/', views.list_employees, name='api-list-employees'),
 )
 

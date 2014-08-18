@@ -245,6 +245,7 @@ URLS_BASE = '/fum/' # fum.futurice.com/fum/
 FUM_LAUNCH_DAY = datetime.datetime.now().replace(year=2013, day=20, month=10)
 
 PROTECTED_GROUPS = ['Futurice','External','TeamIT','TeamHR','TeamAdmin','Disabled','Deleted',]
+EMPLOYEE_GROUPS = ['Futurice','External']
 DISABLED_GROUP = 'Disabled'
 DELETED_GROUP = 'Deleted'
 
