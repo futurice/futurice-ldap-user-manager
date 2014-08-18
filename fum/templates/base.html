@@ -108,7 +108,7 @@ try { console.assert(1); } catch(e) { console = { log: function() {}, assert: fu
 var URLS_BASE='{{settings.URLS_BASE}}';
 var request_user = '{{request.user}}';
 var EMAIL_DOMAIN = '{{settings.EMAIL_DOMAIN}}';
-var COMPANY_NAME = '{{settings.COMPANY_NAME}}';
+var COMPANY_NAME = "{{settings.COMPANY_NAME | safe}}";
 </script>
 {% assets 'js/base.js' %}
 
