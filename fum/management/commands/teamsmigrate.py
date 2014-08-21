@@ -99,7 +99,7 @@ class Command(BaseCommand):
             migrated_team = Groups.objects.get(name=val(v,'cn'))
             gu_id = migrated_team.pk
             v.update({'gidNumber': [str(gu_id)],
-                    'sambaSID':'S-1-5-21-1049098856-3271850987-3507249052-%s' % (gu_id * 2 + 1001)})
+                    'sambaSID':'%s-%s' % (settings.SAMBASID_BASE, gu_id * 2 + 1001)})
             mlist = modlist.addModlist(v)
             try:
                 conn_test.add_s(dn, mlist)

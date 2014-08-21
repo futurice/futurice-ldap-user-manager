@@ -46,7 +46,7 @@ class Command(BaseCommand):
         print "Adding sambaSID, sambaGroupType and objectClass=sambaGroupMapping to groups"
 
         for g in ldap_groups:
-            attrs = [(ldap.MOD_ADD, 'objectClass', 'sambaGroupMapping'),(ldap.MOD_ADD, 'sambaSID', 'S-1-5-21-1049098856-3271850987-3507249052-%s' % (int(g[1]['gidNumber'][0]) * 2 + 1001)),(ldap.MOD_ADD, 'sambaGroupType', '2')]
+            attrs = [(ldap.MOD_ADD, 'objectClass', 'sambaGroupMapping'),(ldap.MOD_ADD, 'sambaSID', '%s-%s' % (settings.SAMBASID_BASE, int(g[1]['gidNumber'][0]) * 2 + 1001)),(ldap.MOD_ADD, 'sambaGroupType', '2')]
             try:
                 con.modify_s(g[0], attrs)
                 print "added "+str(attrs)+" from "+str(g[1]['cn'])

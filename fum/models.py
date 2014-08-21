@@ -320,7 +320,7 @@ class BaseGroup(LDAPModel):
         static_attrs = {}
         if 'sambaGroupMapping' in self.ldap_object_classes:
             static_attrs['sambaGroupType'] = '2' # http://pig.made-it.com/samba-accounts.html
-            static_attrs['sambaSID'] = 'S-1-5-21-1049098856-3271850987-3507249052-%s' % (ldap_id_number * 2 + 1001)
+            static_attrs['sambaSID'] = '%s-%s' % (settings.SAMBASID_BASE, ldap_id_number * 2 + 1001)
         return static_attrs
 
     def get_ldap_id_value(self):
@@ -575,7 +575,7 @@ class Users(LDAPModel):
     def create_static_fields(self,ldap_id_number):
         static_attrs = {}
         if 'sambaSamAccount' in self.ldap_object_classes:
-            static_attrs['sambaSID'] = 'S-1-5-21-1049098856-3271850987-3507249052-%s' % (ldap_id_number * 2 + 1000)
+            static_attrs['sambaSID'] = '%s-%s' % (settings.SAMBASID_BASE, ldap_id_number * 2 + 1000)
             static_attrs['sambaAcctFlags'] = '[U          ]'
             static_attrs['sambaPwdLastSet'] = self.SAMBA_PWD_EXPIRY_TIMESTAMP
         if 'ntUser' in self.ldap_object_classes:
@@ -790,8 +790,8 @@ class EMails(Mother):
                 # After super.save() no failures allowed.
                 self.content_object.ldap.replace_relation(parent=self.content_object, child=u'%s'%self.address, field=self)
                 # create identical alias for username@futurice.com
-                if "@futurice.com" in self.address and isinstance(self.content_object, Users):
-                    em, _ = EMailAliases.objects.get_or_create(parent=email, address='%s@futurice.com'%self.content_object.username)
+                if settings.EMAIL_DOMAIN in self.address and isinstance(self.content_object, Users):
+                    em, _ = EMailAliases.objects.get_or_create(parent=email, address='{0}{1}'.format(self.content_object.username, settings.EMAIL_DOMAIN))
             except Exception, e:
                 print "EMails",e
         except Exception, e:

@@ -31,8 +31,8 @@ from fum.common.ldap_test_suite import LdapSuite, LdapTransactionSuite, random_l
 
 from rest_framework.authtoken.models import Token
 
-create=[('objectClass', ['top', 'posixGroup', 'groupOfUniqueNames', 'mailRecipient', 'google', 'sambaGroupMapping', 'labeledURIObject']), ('sambaGroupType', '2'), ('gidNumber', '4001'), ('sambaSID', 'S-1-5-21-1049098856-3271850987-3507249052-9003'), ('cn', 'TestGroup')]
-update=[(2, 'sambaGroupType', '2'), (2, 'gidNumber', '4001'), (2, 'cn', 'TestGroup'), (2, 'objectClass', ['top', 'posixGroup', 'groupOfUniqueNames', 'mailRecipient', 'google', 'sambaGroupMapping', 'labeledURIObject']), (2, 'sambaSID', 'S-1-5-21-1049098856-3271850987-3507249052-9003')]
+create=[('objectClass', ['top', 'posixGroup', 'groupOfUniqueNames', 'mailRecipient', 'google', 'sambaGroupMapping', 'labeledURIObject']), ('sambaGroupType', '2'), ('gidNumber', '4001'), ('sambaSID', '{0}-9003'.format(settings.SAMBASID_BASE)), ('cn', 'TestGroup')]
+update=[(2, 'sambaGroupType', '2'), (2, 'gidNumber', '4001'), (2, 'cn', 'TestGroup'), (2, 'objectClass', ['top', 'posixGroup', 'groupOfUniqueNames', 'mailRecipient', 'google', 'sambaGroupMapping', 'labeledURIObject']), (2, 'sambaSID', '{0}-9003'.format(settings.SAMBASID_BASE))]
 update_nonexisting=[(2, 'nothere', '2'),]
 add_empty=[(0, 'description', 'Blaa'),]
 update_empty=[(2, 'description', 'Blaa'),]
