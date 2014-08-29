@@ -382,7 +382,7 @@ class UsersViewSet(ListMixin, LDAPViewSet):
         password = random_ldap_password()
         user.set_ldap_password(password)
         sms = SMS()
-        message = "Your new Futurice password: {0}".format(password)
+        message = "Your new {0} password: {1}".format(settings.COMPANY_NAME, password)
         response = sms.send(user.phone1 or user.phone2, message)
         if response.status_code in [200,201,202]:
             return Response('Password generated and sent', status=200)
