@@ -1,6 +1,6 @@
 DESCRIPTION
 ===========
-**FUM** is a user management system using LDAP. It's meant for managing groups, projects, teams and servers at your organization.
+**FUM** is an user management system for LDAP (Lightweight Directory Access Protocol). FUM makes it easy to handle information about your employees, their projects and servers they have access to. LDAP is a good protocol for user management, but it needs an user-friendly layer on top of it. One of the strengths of FUM is that it gives the users a lot of freedom over their data.
 
 BACKGROUND
 ==========
@@ -144,6 +144,16 @@ echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo s
 ABOUT FUTURICE
 ==============
 [Futurice](http://www.futurice.com) is a lean service creation company with offices in Helsinki, Tampere, Berlin and London.
+
+People who have contributed to FUM:
+- [Jussi Vaihia](https://github.com/mixman)
+- [Oskar Ehnström](https://github.com/Ozzee)
+- [Sébastien Piquemal](https://github.com/sebpiq)
+- [Markus Koskinen](https://github.com/mkoskinen)
+- [Henri Holopainen](https://github.com/henriholopainen)
+- [Boyan Tabakov](https://github.com/bladealslayer)
+- [Olli Jarva](https://github.com/ojarva)
+- [Ville Tainio](https://github.com/Wisheri)
 
 SUPPORT
 =======
