@@ -141,6 +141,10 @@ If you're getting "No more space on device" errors when running the watcher.py o
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 ```
 
+SCREENSHOTS
+===========
+![Profile view from FUM.](http://i.imgur.com/LAhfMml.png)
+
 ABOUT FUTURICE
 ==============
 [Futurice](http://www.futurice.com) is a lean service creation company with offices in Helsinki, Tampere, Berlin and London.
