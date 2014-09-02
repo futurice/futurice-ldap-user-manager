@@ -1,3 +1,6 @@
+DEBUG = True
+TEMPLATE_DEBUG = DEBUG
+
 LDAP_CONNECTION = {
     'uri': "",
     'bind_dn': "",
@@ -52,9 +55,11 @@ IT_TEAM = "TeamIT"
 
 # Email settings
 EMAIL_DOMAIN = "@example.com"
+EMAIL_HOST = "smtp.example.com" if not DEBUG else ""
 
 # General settings
 COMPANY_NAME = "Company"
+SECRET_KEY = ''
 
 # SMS Settings
 SMS_URL = ''
@@ -63,3 +68,11 @@ SMS_PASSWORD = ''
 
 # Samba settings
 SAMBASID_BASE = "S-1-5-21-1049098856-3271850987-3507249052"
+
+# FUM Groups
+PROTECTED_GROUPS = ['Company','External','TeamIT','TeamHR','TeamAdmin','Disabled','Deleted',]
+EMPLOYEE_GROUPS = ['Company','External']
+DISABLED_GROUP = 'Disabled'
+DELETED_GROUP = 'Deleted'
+
+

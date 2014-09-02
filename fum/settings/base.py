@@ -8,9 +8,6 @@ PROJECT_ROOT = os.path.normpath(PACKAGE_ROOT)
 DEPLOYMENT_ROOT = PROJECT_ROOT
 PROJECT_NAME = 'fum'
 
-DEBUG = True
-TEMPLATE_DEBUG = DEBUG
-
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
@@ -31,7 +28,6 @@ OWNER = getpass.getuser()
 OWNER_UID = getpwnam(OWNER).pw_uid
 OWNER_GID = getpwnam(OWNER).pw_gid
 
-EMAIL_HOST = "smtpgw.futurice.com" if not DEBUG else ""
 EMAIL_PORT = 25
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
@@ -59,8 +55,6 @@ PORTRAIT_FULL_URL = '%sportraits/full/' % MEDIA_URL
 
 STATIC_ROOT = '{PROJECT_ROOT}/static/'.format(**locals())
 STATIC_URL = '/static/'
-
-SECRET_KEY = '430hz2dq&_5_vdo_np-hc3k(^#&gyzqg0lqg#g@%va-ekn33y7'
 
 MIDDLEWARE_CLASSES = (
     'fum.common.middleware.ThreadLocals',
@@ -243,11 +237,6 @@ URLS_EXCLUDE_PATTERN = ['.(?P<format>[a-z]+)',]
 URLS_BASE = '/fum/' # fum.futurice.com/fum/
 
 FUM_LAUNCH_DAY = datetime.datetime.now().replace(year=2013, day=20, month=10)
-
-PROTECTED_GROUPS = ['Futurice','External','TeamIT','TeamHR','TeamAdmin','Disabled','Deleted',]
-EMPLOYEE_GROUPS = ['Futurice','External']
-DISABLED_GROUP = 'Disabled'
-DELETED_GROUP = 'Deleted'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap'
 
