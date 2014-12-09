@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.paginator import Paginator,PageNotAnInteger, EmptyPage
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, HttpResponsePermanentRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.core.cache import cache
 from django.db.models import Q
@@ -449,7 +449,7 @@ def userphoto(request, username, size='thumb'):
         if not url:
             url = u.default_thumb_url()
         cache.set(KEY, url, 3600)
-    return HttpResponsePermanentRedirect(url)
+    return HttpResponseRedirect(url)
 
 def list_employees(request):
     KEY = 'list-employees'

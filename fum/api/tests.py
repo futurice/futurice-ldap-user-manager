@@ -560,6 +560,28 @@ class LdapTestCase(LdapSuite):
         self.assertEqual(['users', 'sudoers'], [k.name for k in self.server.get_ldap_m2m_relations()])
         self.assertEqual([('users', 'uniqueMember'), ('sudoers', 'sudoUser')], [(k.name, k.ldap_field) for k in self.server.get_ldap_m2m_relations()])
 
+    def test_set_value(self):
+        from ldap import modlist
+        modified_values = {'key': 'new'}
+        self.assertEquals(modlist.modifyModlist({}, modified_values), [(0, 'key', 'new')])
+
+        mlist = self.ldap.get_modify_modlist(modified_values)
+        self.assertEquals(mlist, [(2, 'key', 'new')])
+
+    def test_set_to_empty(self):
+        from ldap import modlist
+        modified_values = {'key': ''}
+        self.assertEquals(modlist.modifyModlist({}, modified_values), [])
+        self.assertEquals(modlist.modifyModlist({'key': 'old-value'}, {'key': ''}), [(1, 'key', None)])
+
+        mlist = self.ldap.get_modify_modlist(modified_values)
+        self.assertEquals(mlist, [(2, 'key', '')])
+
+        modified_values = {'key': 'foo'}
+        self.assertEquals(modlist.modifyModlist({'key': ''}, {'key': 'foo'}), [(0, 'key', 'foo')])
+        mlist = self.ldap.get_modify_modlist(modified_values)
+        self.assertEquals(mlist, [(2, 'key', 'foo')])
+
 class ApiTestCase(LdapTransactionSuite):
 
     def setUp(self):

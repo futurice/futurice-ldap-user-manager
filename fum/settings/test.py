@@ -29,3 +29,4 @@ TEST_RUNNER = "ignoretests.DjangoIgnoreTestSuiteRunner"
 IGNORE_TESTS = (
     'django_extensions',
 )
+

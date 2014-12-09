@@ -148,8 +148,15 @@ class LDAPBridge(object):
         return self._get_connection()
     connection = property(_get_bound_connection)
 
-    def get_modify_modlist(self, values, force_update=False):
-        mlist = modlist.modifyModlist({}, values)
+    def get_modify_modlist(self, values, force_update=False, keep_empty=True):
+        """ Current values are always empty, requiring extra hand-holding for empty values.
+        @TODO pass existing values """
+        current_values = {}
+        mlist = modlist.modifyModlist(current_values, values)
+        mlist_keys = [k[1] for k in mlist]
+        for k, m in enumerate(values.keys()):
+            if keep_empty and m not in mlist_keys:
+                mlist.append((ldap.MOD_REPLACE, m, ''))
         for k, m in enumerate(mlist):
             mlist[k] = (ldap.MOD_REPLACE, mlist[k][1], mlist[k][2])
         return mlist
@@ -199,7 +206,6 @@ class LDAPBridge(object):
             create_dn=dn
         else:
             raise Exception("No DN specified, unable to save to LDAP.")
-
         self.op_add(create_dn, mlist)
 
     def save(self, values={}, extra={}, **kwargs):
