@@ -4,7 +4,6 @@ psycopg2==2.5.2
 python-dateutil==2.1
 django-extensions==1.2.0
 python-ldap==2.4.13
-MySQL-python==1.2.5
 pytz==2013d
 Fabric==1.6.1
 watchdog==0.6.0

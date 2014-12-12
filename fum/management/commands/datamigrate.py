@@ -11,7 +11,6 @@ from django.utils.encoding import smart_unicode
 import re
 import ldap
 import sys
-import _mysql
 import pytz
 from datetime import datetime
 from optparse import make_option
@@ -100,21 +99,8 @@ class Command(BaseCommand):
         sudoer_filter = "(objectclass=sudoRole)"
         sudoer_attrs = ['sudoUser','sudoHost','cn']
 
-        # Old FUM MySQL connection
-        mysql_server = settings.MIGRATION['MYSQL']['uri']
-        mysql_port = settings.MIGRATION['MYSQL']['port']
-        mysql_user = settings.MIGRATION['MYSQL']['user']
-        mysql_pw = settings.MIGRATION['MYSQL']['pw']
-        mysql_db = settings.MIGRATION['MYSQL']['db']
-
         # Local timezone
         tz = pytz.timezone('Europe/Helsinki')
-
-        # open connections
-        try:
-            db = _mysql.connect(host=mysql_server,port=mysql_port,user=mysql_user,passwd=mysql_pw,db=mysql_db)
-        except Exception, e:
-            print e
 
         # Ignore certificates
         ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, 0)
@@ -132,15 +118,7 @@ class Command(BaseCommand):
         for u in ldap_users:
             print u
             v = u[1]
-            # get skype name from fum3 database
-            try:
-                db.query("select skype from node_extensions_extendeduser where rdn_value = '"+v['uid'][0]+"'")
-                r = db.store_result()
-                result = r.fetch_row()
-                skype_name = None if len(result) < 1 else result[0][0]
-            except Exception, e:
-                skype_name = None
-            user = Users(id=val(v,'uidNumber'),first_name=val(v,'givenName'),last_name=val(v,'sn'),username=val(v,'uid'),title=val(v,'title'),phone1=val(v,'telephoneNumber'),phone2=val(v,'mobile'),skype=skype_name,physical_office=val(v,'physicalDeliveryOfficeName'),google_status=get_google_enum(val(v,'googleStatus')),picture_uploaded_date=None,suspended_date=None)
+            user = Users(id=val(v,'uidNumber'),first_name=val(v,'givenName'),last_name=val(v,'sn'),username=val(v,'uid'),title=val(v,'title'),phone1=val(v,'telephoneNumber'),phone2=val(v,'mobile'),skype=None,physical_office=val(v,'physicalDeliveryOfficeName'),google_status=get_google_enum(val(v,'googleStatus')),picture_uploaded_date=None,suspended_date=None)
             if 'shadowLastChange' in v:
                 user.shadow_last_change = val(v,'shadowLastChange')
             if 'shadowMax' in v:
@@ -258,8 +236,3 @@ class Command(BaseCommand):
         print "Sudoers done"
 
         con.unbind()
-        try:
-            db.close()
-        except Exception, e:
-            print e
-

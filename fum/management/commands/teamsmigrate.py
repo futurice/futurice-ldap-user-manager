@@ -9,7 +9,6 @@ from django.utils.encoding import smart_unicode
 
 import ldap
 import sys
-import _mysql
 import pytz
 from datetime import datetime
 from optparse import make_option
@@ -19,7 +18,6 @@ from fum.models import *
 
 import sys
 import ldap
-import _mysql
 import pytz
 from datetime import datetime
 from fum.models import *
