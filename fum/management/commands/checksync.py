@@ -10,7 +10,6 @@ from django.utils.encoding import smart_unicode
 import re
 import ldap
 import sys
-import _mysql
 import pytz
 from datetime import datetime
 from optparse import make_option

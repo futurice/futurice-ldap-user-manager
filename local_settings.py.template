@@ -21,15 +21,6 @@ MIGRATION = {
         'bind_dn': LDAP_CONNECTION['bind_dn'],
         'bind_pwd': LDAP_CONNECTION['bind_pwd'],
     },
-
-    # MySQL is not used anymore, but some code still uses these keys
-    'MYSQL': {
-        'uri': "localhost",
-        'port': 0,
-        'user': "dummy",
-        'pw': "dummy",
-        'db': "dummy",
-    }
 }
 
 DATABASES = {
