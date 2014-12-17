@@ -15,6 +15,13 @@ pip install --allow-external PIL --allow-unverified PIL -r requirements.txt
 npm install
 
 cp local_settings.py.template local_settings.py
+# set the SECRET_KEY to a random string
+# Fill in the LDAP_CONNECTION fields
+# Change “company” and “Company” (e.g. to “futurice” and “Futurice”) throughout the file
+# set USE_TLS=False if LDAP connections don't work
+# Change EMAIL_DOMAIN and EMAIL_HOST (e.g. replace example.com with futurice.com)
+
+mkdir -p media/portraits/full media/portraits/thumb
 
 # Edit LDAP configuration.
 createdb fum	# If using PostgreSQL
@@ -31,6 +38,7 @@ REMOTE_USER=x ./manage.py runserver --nostatic
 
 Testing: 
 
+You should have `memcached` running when running tests.
 `python manage.py test --settings=fum.settings.test`
 
 SEARCH (Haystack + SOLR)
