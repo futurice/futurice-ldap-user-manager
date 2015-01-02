@@ -3,6 +3,7 @@
 Tests for the API
 """
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.test.client import Client
 from django.test import TestCase
 from django.core.exceptions import ObjectDoesNotExist
@@ -20,16 +21,21 @@ import unittest
 import ldap
 from ldap import modlist
 
-from fum.ldap_helpers import test_user_ldap, ldap_cls
-from fum.models import Users, Servers, Groups, Projects, EMails, EMailAliases, BaseGroup, Resource, AuditLogs
+from fum.ldap_helpers import test_user_ldap, ldap_cls, PoolLDAPBridge
+from fum.models import (
+    Users, Servers, Groups, Projects, EMails, EMailAliases, BaseGroup,
+    Resource, AuditLogs, SSHKey,
+)
 
 import datetime, json, sys, copy, os, time
 from pprint import pprint as pp
+import sshpubkeys
 
 from fum.api.changes import changes_save, rest_reverse
 from fum.common.ldap_test_suite import LdapSuite, LdapTransactionSuite, random_ldap_password
 
 from rest_framework.authtoken.models import Token
+from rest_framework import status
 
 create=[('objectClass', ['top', 'posixGroup', 'groupOfUniqueNames', 'mailRecipient', 'google', 'sambaGroupMapping', 'labeledURIObject']), ('sambaGroupType', '2'), ('gidNumber', '4001'), ('sambaSID', '{0}-9003'.format(settings.SAMBASID_BASE)), ('cn', 'TestGroup')]
 update=[(2, 'sambaGroupType', '2'), (2, 'gidNumber', '4001'), (2, 'cn', 'TestGroup'), (2, 'objectClass', ['top', 'posixGroup', 'groupOfUniqueNames', 'mailRecipient', 'google', 'sambaGroupMapping', 'labeledURIObject']), (2, 'sambaSID', '{0}-9003'.format(settings.SAMBASID_BASE))]
@@ -1377,3 +1383,147 @@ class ProjectTestCase(LdapTransactionSuite):
 
         p.name = 'P247entertainmentJukeW8'
         self.assertEqual(None, p.full_clean())
+
+
+class SSHKeyTestCase(LdapTransactionSuite):
+
+    valid_ssh_key = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3uta/x/kAwbs2G7AOUQtRG7l1hjEws4mrvnTZmwICoGNi+TUwxerZgMbBBID7Kpza/ZSUqXpKX5gppRW9zECBsbJ+2D0ch/oVSZ408aUE6ePNzJilLA/2wtRct/bkHDZOVI+iwEEr1IunjceF+ZQxnylUv44C6SgZvrDj+38hz8z1Vf4BtW5jGOhHkddTadU7Nn4jQR3aFXMoheuu/vHYD2OyDJj/r6vh9x5ey8zFmwsGDtFCCzzLgcfPYfOdDxFIWhsopebnH3QHVcs/E0KqhocsEdFDRvcFgsDCKwmtHyZVAOKym2Pz9TfnEdGeb+eKrleZVsApFrGtSIfcf4pH user@host'
+    valid_ssh_key_2 = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDI86o9MlbA7NI/lXbWk7OSJw2bEfOAJsdkqrGmU1FVUZwCRupmx+VnelinyEUDCC5fwycTMcPAkUk990xogN8iH3aHZkfpun89091U+DyeLrfYPwP1lGo5ubGdPseAxJYZ4nbNQcBCGamtAwMeHl9UUfEoLFNE6GK62Yo9MGBNl28AeOX/NNz3WniMImr45x2kuL7E/pugnKcUCc2i1a+xxQdm4aqOzek/RYZ9pAwl8KeVipEUHpFZWsldLlXM28agzIrdxAVURc7rUJyz2PtF5vBrPTNDVhqX0tG3fgZ2uLlyWfc3a97gQrlgXKqM13hQ2lK0h5dPYWRe4WTFrmQn user2@host2'
+
+    def get_ldap_ssh_keys(self, user=None):
+        user = user or self.user
+        data = self.user.ldap.op_search(user.get_dn(),
+                ldap.SCOPE_BASE, 'uid=' + user.username,
+                [SSHKey.LDAP_ATTR])
+        data = data[0][1]
+        if SSHKey.LDAP_ATTR in data:
+            return data[SSHKey.LDAP_ATTR]
+        return []
+
+    def assert_ldap_ssh_key_count(self, count, user=None):
+        self.assertEqual(len(self.get_ldap_ssh_keys(user)), count)
+
+    def get_addsshkey_url(self, user=None):
+        user = user or self.user
+        return reverse('users-detail', args=[user.username]) + 'addsshkey/'
+
+    def get_deletesshkey_url(self, user=None):
+        user = user or self.user
+        return reverse('users-detail', args=[user.username]) + 'deletesshkey/'
+
+    def test_key_validity(self):
+        self.assert_ldap_ssh_key_count(0)
+        add_url = self.get_addsshkey_url()
+        delete_url = self.get_deletesshkey_url()
+        with self.assertRaises(sshpubkeys.InvalidKeyException):
+            self.client.post(add_url,
+                {'title': 'bad key', 'key': 'invalid string'}, format='json')
+
+        resp = self.client.post(add_url,
+            {'title': 'my key', 'key': self.valid_ssh_key}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assert_ldap_ssh_key_count(1)
+
+        resp = self.client.post(add_url,
+            {'title': 'my key 2', 'key': self.valid_ssh_key_2}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assert_ldap_ssh_key_count(2)
+
+        resp = self.client.post(delete_url, {'fingerprint':
+            SSHKey.objects.filter(user=self.user)[0].fingerprint},
+            format='json', HTTP_X_HTTP_METHOD_OVERRIDE='DELETE')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assert_ldap_ssh_key_count(1)
+
+    def test_equal_fingerprints(self):
+        self.assert_ldap_ssh_key_count(0)
+        url = self.get_addsshkey_url()
+
+        resp = self.client.post(url,
+            {'title': 'k1', 'key': self.valid_ssh_key}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        with self.assertRaises(ValidationError):
+            # key with the same fingerprint
+            resp = self.client.post(url,
+                {'title': 'k2', 'key': self.valid_ssh_key + '2'}, format='json')
+
+    def test_transaction(self):
+        """
+        Ensure no key is in the FUM DB if there's an error adding it to LDAP.
+        """
+        self.assert_ldap_ssh_key_count(0)
+        url = self.get_addsshkey_url()
+
+        def mocked(*args, **kwargs):
+            raise Exception('mock')
+        original = PoolLDAPBridge.op_modify
+        try:
+            PoolLDAPBridge.op_modify = mocked
+
+            with self.assertRaises(Exception):
+                resp = self.client.post(url,
+                    {'title': 'k1', 'key': self.valid_ssh_key}, format='json')
+        finally:
+            PoolLDAPBridge.op_modify = original
+        self.assert_ldap_ssh_key_count(0)
+        self.assertEqual(SSHKey.objects.filter(user=self.user).count(), 0)
+
+    def test_permissions(self):
+        """
+        Only sudo users can set or delete other users' ssh keys.
+        """
+        self.assert_ldap_ssh_key_count(0)
+        add_url = self.get_addsshkey_url()
+        delete_url = self.get_deletesshkey_url()
+
+        resp = self.client.post(add_url,
+            {'title': 'my key', 'key': self.valid_ssh_key}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assert_ldap_ssh_key_count(1)
+
+        pw = random_ldap_password()
+        other_dj_user, other_user = self.create_user('test_perm_user',
+                password=pw)
+        self.assertTrue(self.client.login(username=other_user.username,
+            password=pw))
+
+        # normal users can't add or delete other users' keys
+
+        resp = self.client.post(add_url,
+            {'title': 'my key', 'key': self.valid_ssh_key_2}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+        self.assert_ldap_ssh_key_count(1)
+
+        resp = self.client.post(delete_url, {'fingerprint':
+            SSHKey.objects.get(user=self.user).fingerprint},
+            format='json', HTTP_X_HTTP_METHOD_OVERRIDE='DELETE')
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+        self.assert_ldap_ssh_key_count(1)
+
+        # superusers can add and delete others' ssh keys
+
+        # add to TeamIT
+        g = self.save_safe(Groups,
+                kw=dict(name=settings.IT_TEAM),
+                lookup=dict(name=settings.IT_TEAM))
+        try:
+            g.users.add(other_user)
+        except ldap.TYPE_OR_VALUE_EXISTS, e: # live LDAP not cleaned
+            pass
+        response = self.client.post('/sudo/', {'password': pw},
+                HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        resp = self.client.post(add_url,
+            {'title': 'my key', 'key': self.valid_ssh_key_2}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assert_ldap_ssh_key_count(2)
+
+        for ssh_key in SSHKey.objects.filter(user=self.user):
+            resp = self.client.post(delete_url,
+                    {'fingerprint': ssh_key.fingerprint},
+                    format='json', HTTP_X_HTTP_METHOD_OVERRIDE='DELETE')
+            self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        self.assert_ldap_ssh_key_count(0)

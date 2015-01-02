@@ -24,6 +24,7 @@ import json
 import hashlib
 import smbpasswd
 import re
+import sshpubkeys
 import sys
 import os
 
@@ -355,6 +356,51 @@ class BaseGroup(LDAPModel):
         abstract = True
         ordering = ['name']
 
+
+class SSHKey(models.Model):
+    # ‘Mother’ provides get_all_relations().
+    # Hope it doesn't otherwise interfere.
+    LDAP_OBJCLS = 'ldappublickey'
+    LDAP_ATTR = 'sshPublicKey'
+
+    title = models.CharField(max_length=50)
+    key = models.TextField()
+    user = models.ForeignKey('Users')
+
+    # "00:c3:ff...", computed on save
+    fingerprint = models.CharField(max_length=100, unique=True, db_index=True)
+    # number of bits, computed on save
+    bits = models.IntegerField()
+
+    @property
+    def name(self):
+        """
+        The FUM changes api requires a name property.
+        """
+        return self.fingerprint
+
+    def save(self, *args, **kwargs):
+        k = sshpubkeys.SSHKey(self.key)
+        self.bits = k.bits
+        self.fingerprint = k.hash()
+        self.full_clean()
+        super(SSHKey, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        # this is used to generate the API URL for the instance shown in the
+        # FUM changes socket.
+        return self.fingerprint
+
+    def get_all_relations(self):
+        """
+        Required by the changes API.
+
+        Can't simply inherit from Mother because it interferes with other stuff
+        (e.g. delete permissions).
+        """
+        pass
+
+
 class Users(LDAPModel):
     """ Phone1, Phone2 are both mobile numbers """
     UNDEFINED = 'undefined'
@@ -567,7 +613,7 @@ class Users(LDAPModel):
             }
     restricted_fields = ['username','phone1','phone2','google_status','suspended_date','password','active_in_planmill','hr_number',]
     # remove kerberos entries only after all People in LDAP purged of krb* data
-    ldap_object_classes = ['inetOrgPerson', 'ntUser', 'account', 'hostObject', 'posixAccount', 'shadowAccount', 'sambaSamAccount', 'organizationalPerson', 'top', 'person', 'google','krbprincipalAux','krbTicketPolicyAux']
+    ldap_object_classes = ['inetOrgPerson', 'ntUser', 'account', 'hostObject', 'posixAccount', 'shadowAccount', 'sambaSamAccount', 'organizationalPerson', 'top', 'person', 'google','krbprincipalAux','krbTicketPolicyAux', SSHKey.LDAP_OBJCLS]
     ldap_base_dn=settings.USER_DN
     ldap_id_number_field='uidNumber'
     ldap_range=[2000,3000]
@@ -662,6 +708,7 @@ class Users(LDAPModel):
 
     class Meta:
         ordering = ['first_name', 'last_name']
+
         
 class Groups(BaseGroup):
     def get_absolute_url(self):

@@ -5,7 +5,10 @@ from rest_framework import serializers, pagination
 from rest_framework.parsers import JSONParser
 from rest_framework.compat import smart_text
 
-from fum.models import Users, Groups, Servers, Projects, EMails, Resource, EMailAliases, get_generic_email
+from fum.models import (
+    Users, Groups, Servers, Projects, EMails, Resource, EMailAliases, SSHKey,
+    get_generic_email,
+)
 from fum.common.middleware import get_current_request
 
 import StringIO
@@ -201,3 +204,15 @@ class AliasesSerializer(serializers.ModelSerializer):
     class Meta:
         model = EMailAliases
         fields = ('id', 'address', 'parent')
+
+#
+# SSH Keys
+#
+class SSHKeysSerializer(serializers.ModelSerializer):
+
+    user = serializers.SlugRelatedField(slug_field='username',
+            read_only=True)
+
+    class Meta:
+        model = SSHKey
+        fields = ('title', 'key', 'user', 'fingerprint', 'bits')

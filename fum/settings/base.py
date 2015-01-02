@@ -240,6 +240,8 @@ FUM_LAUNCH_DAY = datetime.datetime.now().replace(year=2013, day=20, month=10)
 
 CRISPY_TEMPLATE_PACK = 'bootstrap'
 
+SSH_KEY_MIN_BITS = 2048
+
 try:
     # add any secrets here; local_settings needs to be somewhere in PYTHONPATH (eg. project-root, user-root)
     from local_settings import *
