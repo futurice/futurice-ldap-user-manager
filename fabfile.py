@@ -54,8 +54,8 @@ def deploy():
     symlink_release()
     
     # anything that depends on requirements under here
-    prepare_assets()
     prepare_hidden_files()
+    prepare_assets()
 
     manage('syncdb --noinput')
     manage('migrate --noinput')
@@ -87,8 +87,8 @@ def setup():
     install_python_packages()
     symlink_release()
 
-    prepare_assets()
     prepare_hidden_files()
+    prepare_assets()
 
     restart_apache()
 
