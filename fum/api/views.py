@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.paginator import Paginator,PageNotAnInteger, EmptyPage
+from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -17,11 +18,13 @@ from rest_framework.renderers import JSONRenderer
 
 from serializers import *
 
+from fum.api.changes import changes_save, changes_delete
 from fum.ldap_helpers import test_user_ldap
-from fum.models import EMailAliases, Resource, Users
+from fum.models import EMailAliases, Resource, Users, SSHKey
 from fum.common.util import SMS, random_ldap_password
 from fum.api.serializers import UsersSerializer
 
+import ldap
 from ldap import CONSTRAINT_VIOLATION
 from datetime import datetime
 from PIL import Image
@@ -389,6 +392,47 @@ class UsersViewSet(ListMixin, LDAPViewSet):
         else:
             return Response('Password generated, but SMS failed', status=200)
 
+    @action(methods=['post'])
+    def addsshkey(self, request, username=None):
+        user = self.get_object()
+        if (request.user.username != user.username and
+                not user.is_sudo_user(request)):
+            return Response('Forbidden', status=403)
+
+        ldap_data = user.ldap.fetch(user.get_dn(), filters=user.ldap_filter,
+                attrs=['objectClass'], scope=ldap.SCOPE_BASE)
+        if SSHKey.LDAP_OBJCLS not in ldap_data['objectClass']:
+            user.ldap.op_modify(user.get_dn(),
+                    [(ldap.MOD_ADD, 'objectClass', SSHKey.LDAP_OBJCLS)])
+
+        with transaction.commit_on_success():
+            ssh_key = SSHKey(user=user, title=request.DATA['title'],
+                    key=request.DATA['key'])
+            ssh_key.save()
+            user.ldap.op_modify(user.get_dn(),
+                    [(ldap.MOD_ADD, SSHKey.LDAP_ATTR, str(ssh_key.key))])
+
+        changes_save(None, ssh_key, True)
+        return Response('', status=200)
+
+    @action(methods=['delete'])
+    def deletesshkey(self, request, username=None):
+        user = self.get_object()
+        if (request.user.username != user.username and
+                not user.is_sudo_user(request)):
+            return Response('Forbidden', status=403)
+
+        # LDAP controls SSH access to servers. If there's an error removing a
+        # key from LDAP, fail and don't remove it from fum's DB.
+
+        ssh_key = SSHKey.objects.get(fingerprint=request.DATA['fingerprint'])
+        user.ldap.op_modify(user.get_dn(),
+                [(ldap.MOD_DELETE, SSHKey.LDAP_ATTR, str(ssh_key.key))])
+        ssh_key.delete()
+
+        changes_delete(None, ssh_key)
+        return Response('', status=200)
+
 class GroupsViewSet(ListMixin, LDAPViewSet):
     model = Groups
     serializer_class = GroupsSerializer
@@ -435,6 +479,11 @@ class EMailAliasesViewSet(viewsets.ModelViewSet):
     model = EMailAliases
     serializer_class = AliasesSerializer
     lookup_field = 'address'
+
+class SSHKeysViewSet(viewsets.ReadOnlyModelViewSet):
+    model = SSHKey
+    serializer_class = SSHKeysSerializer
+    lookup_field = 'fingerprint'
 
 def userphoto(request, username, size='thumb'):
     KEY = 'user-photo-url-%s-%s'%(username,size)

@@ -11,6 +11,7 @@ router.register(r'servers', views.ServersViewSet)
 router.register(r'projects', views.ProjectsViewSet)
 router.register(r'emails', views.EMailsViewSet)
 router.register(r'aliases', views.EMailAliasesViewSet)
+router.register(r'ssh-keys', views.SSHKeysViewSet)
 
 # rest-framework serializers are not done yet; refactor mod_* code to get routings done by the framework
 router_urls = router.get_urls()

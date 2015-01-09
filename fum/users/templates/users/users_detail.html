@@ -103,6 +103,10 @@
     </tr>
 
     <tr>
+        {% include "users/ssh_keys.html" with user=object settings=settings request=request sudo=sudo only %}
+    </tr>
+
+    <tr>
         <td class="infofield">Supervisor:</td>
         <td>
             <input type="hidden" class="bigdrop" id="xsupervisor" style="width:300px" value="{{object.supervisor_id|default:''}}" data-initial="{{object.supervisor.username}}"/>

@@ -26,6 +26,7 @@ diff-match-patch==20120106
 ldappool==1.0
 South==0.8.2
 django_js_utils_ng==0.5.futu
+sshpubkeys==1.0.5
 
 django-history==0.1.6
 mockldap==0.1.4futu

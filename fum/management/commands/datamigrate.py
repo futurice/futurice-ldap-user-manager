@@ -87,7 +87,7 @@ class Command(BaseCommand):
         # LDAP users
         user_base_dn = settings.USER_DN
         user_filter = "(objectclass=person)"
-        user_attrs = ['givenName','sn','uid','title','mail','telephoneNumber','mobile','googleStatus','sambaPwdMustChange','gidNumber','proxyaddress','uidNumber', 'shadowLastChange', 'shadowMax', 'physicalDeliveryOfficeName']
+        user_attrs = ['givenName','sn','uid','title','mail','telephoneNumber','mobile','googleStatus','sambaPwdMustChange','gidNumber','proxyaddress','uidNumber', 'shadowLastChange', 'shadowMax', 'physicalDeliveryOfficeName', SSHKey.LDAP_ATTR]
 
         # LDAP groups
         group_base_dn = settings.GROUP_DN
@@ -156,6 +156,14 @@ class Command(BaseCommand):
                     print u, e
             elif 'proxyaddress' in v:
                 print "user "+user.username+" doesn't have a primary email, but still has email aliases... not good!"
+
+            for ssh_key_text in (v.get(SSHKey.LDAP_ATTR) or []):
+                try:
+                    ssh_key = SSHKey.objects.get(key=ssh_key_text)
+                except SSHKey.DoesNotExist:
+                    ssh_key = SSHKey(key=ssh_key_text, title='ssh key')
+                ssh_key.user = user
+                ssh_key.save()
 
         print "Users done"
 
