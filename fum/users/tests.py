@@ -36,7 +36,7 @@ class UserTest(LdapTransactionSuite):
                 lookup=dict(name='Elysium'))
         g.users.add(u)
         self.assertTrue(u.in_group(g))
-        self.assertEqual(uf(u).lval().get('shadowMax'), ['365'])
+        self.assertEqual(uf(u).lval().get('shadowMax'), [str(settings.LDAP_SHADOWMAX)])
 
         u.set_disabled()
         self.assertEqual(u.get_status(), Users.USER_DISABLED)
