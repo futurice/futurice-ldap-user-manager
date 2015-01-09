@@ -36,7 +36,7 @@
             key = document.getElementById('ssh-key-key').value;
 
         $.ajax({
-            url: '{% url "users-detail" user.username %}addsshkey/',
+            url: '{% url "users-addsshkey" user.username %}',
             type: 'POST',
             contentType: 'application/json; charset=UTF-8',
             data: JSON.stringify({
@@ -55,7 +55,7 @@
     function deleteSSHKey(key_fingerprint, key_title) {
         if (confirm('Delete key “' + key_title + '”?')) {
             $.ajax({
-                url: '{% url "users-detail" user.username %}deletesshkey/',
+                url: '{% url "users-deletesshkey" user.username %}',
                 type: 'DELETE',
                 contentType: 'application/json; charset=UTF-8',
                 data: JSON.stringify({

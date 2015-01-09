@@ -93,7 +93,7 @@ def _get_url(object_type, rdn_value=None): # API URL
     <RegexURLPattern servers-users ^servers/(?P<name>[^/]+)/users/$>,
     """
     try:
-        return rest_reverse('%s-detail' % object_type.__class__.__name__.lower(), args=[object_type])
+        return rest_reverse('%s-detail' % object_type.__class__.__name__.lower(), args=[getattr(object_type, 'name', object_type)])
     except NoReverseMatch, e:
         # TODO: Resource-model needs API entry
         print e

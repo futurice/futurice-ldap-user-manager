@@ -154,13 +154,10 @@ class Mother(models.Model, DirtyFieldsMixin):
         abstract = True
 
 class LDAPModel(Mother):
-    resources = generic.GenericRelation('fum.Resource')
     content_type = models.ForeignKey(ContentType, null=True, blank=True, editable=False)
     object_id = models.PositiveIntegerField(null=True, blank=True, editable=False)
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     ldap_filter = "(objectClass=top)" # this is common to all objects, and we don't use objectclass to differentiate objects under a dn
-
-    email = generic.GenericRelation('fum.EMails')
 
     def __init__(self, *args, **kwargs):
         LDAP_CLASS = kwargs.pop('LDAP_CLASS', None)
@@ -172,9 +169,6 @@ class LDAPModel(Mother):
 
     class Meta:
         abstract = True
-
-    def get_email(self):
-        return get_generic_email(self.email)
 
     def audit_url(self):
         ct = ContentType.objects.get_for_model(self)
@@ -298,7 +292,17 @@ class LDAPModel(Mother):
         else:
             transaction.commit()
 
-class BaseGroup(LDAPModel):
+class LDAPGroupModel(LDAPModel):
+    resources = generic.GenericRelation('fum.Resource')
+    email = generic.GenericRelation('fum.EMails')
+
+    def get_email(self):
+        return get_generic_email(self.email)
+
+    class Meta:
+        abstract = True
+
+class BaseGroup(LDAPGroupModel):
     name = models.CharField(max_length=500, unique=True)
     description = models.CharField(max_length=5000, default="", blank=True)
     created = models.DateTimeField(null=True, blank=True, default=datetime.now)
@@ -358,8 +362,6 @@ class BaseGroup(LDAPModel):
 
 
 class SSHKey(models.Model):
-    # ‘Mother’ provides get_all_relations().
-    # Hope it doesn't otherwise interfere.
     LDAP_OBJCLS = 'ldappublickey'
     LDAP_ATTR = 'sshPublicKey'
 
@@ -367,15 +369,14 @@ class SSHKey(models.Model):
     key = models.TextField()
     user = models.ForeignKey('Users')
 
-    # "00:c3:ff...", computed on save
+    # below fields computed on save
     fingerprint = models.CharField(max_length=100, unique=True, db_index=True)
-    # number of bits, computed on save
     bits = models.IntegerField()
 
     @property
     def name(self):
         """
-        The FUM changes api requires a name property.
+        The FUM changes api requires a name property for URL generation.
         """
         return self.fingerprint
 
@@ -386,22 +387,7 @@ class SSHKey(models.Model):
         self.full_clean()
         super(SSHKey, self).save(*args, **kwargs)
 
-    def __unicode__(self):
-        # this is used to generate the API URL for the instance shown in the
-        # FUM changes socket.
-        return self.fingerprint
-
-    def get_all_relations(self):
-        """
-        Required by the changes API.
-
-        Can't simply inherit from Mother because it interferes with other stuff
-        (e.g. delete permissions).
-        """
-        pass
-
-
-class Users(LDAPModel):
+class Users(LDAPGroupModel):
     """ Phone1, Phone2 are both mobile numbers """
     UNDEFINED = 'undefined'
     ACTIVEPERSON = 'activeperson'
@@ -610,6 +596,7 @@ class Users(LDAPModel):
                 'samba_password': 'sambaNTPassword',
                 'samba_pwd_last_set': 'sambaPwdLastSet',
                 'jpeg_portrait': 'jpegPhoto',
+                'sshkey': SSHKey.LDAP_ATTR,
             }
     restricted_fields = ['username','phone1','phone2','google_status','suspended_date','password','active_in_planmill','hr_number',]
     # remove kerberos entries only after all People in LDAP purged of krb* data
@@ -649,9 +636,6 @@ class Users(LDAPModel):
 
     def get_absolute_url(self):
         return reverse('users_detail', kwargs={'slug':self.username})
-
-    def __unicode__(self):
-        return u'%s'%self.username
 
     # Removes spaces and dashes, substitutes 00 with +
     def clean_phone_number(self, phone_number):
@@ -798,9 +782,6 @@ class EMails(Mother):
                 pass
             else:
                 raise ValidationError("Email is not valid")
-
-    def __unicode__(self):
-        return u'%s'%self.address
     
     @transaction.commit_manually
     def save(self, *args, **kwargs):
@@ -901,9 +882,6 @@ class EMailAliases(Mother):
             transaction.commit()
         return ret
 
-    def __unicode__(self):
-        return u'%s'%self.address
-
 class Resource(Mother):
     name = models.CharField(max_length=500)
     url = models.URLField(max_length=500)
@@ -937,10 +915,6 @@ class Resource(Mother):
     def get_absolute_url(self):
         return u'/'
 
-    def __unicode__(self):
-        return u'%s'%self.name
-
-
 class AuditLogsManager(MotherManager):
     def add(self, operation, user=None):
         user_id = None
@@ -955,7 +929,6 @@ class AuditLogsManager(MotherManager):
             # roid,totype added based on change
             roid = None
             rotype = None
-            rels = model().get_all_relations()
             # attrs supports changing many things at the same time, but to fully support
             # would need to fire many AuditLogs events for each relation
             related_object = op.get('related_instance', None)
