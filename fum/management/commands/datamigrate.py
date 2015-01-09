@@ -87,7 +87,7 @@ class Command(BaseCommand):
         # LDAP users
         user_base_dn = settings.USER_DN
         user_filter = "(objectclass=person)"
-        user_attrs = ['givenName','sn','uid','title','mail','telephoneNumber','mobile','googleStatus','sambaPwdMustChange','gidNumber','proxyaddress','uidnumber', 'shadowLastChange', 'shadowMax', 'physicalDeliveryOfficeName']
+        user_attrs = ['givenName','sn','uid','title','mail','telephoneNumber','mobile','googleStatus','sambaPwdMustChange','gidNumber','proxyaddress','uidNumber', 'shadowLastChange', 'shadowMax', 'physicalDeliveryOfficeName']
 
         # LDAP groups
         group_base_dn = settings.GROUP_DN
@@ -118,7 +118,22 @@ class Command(BaseCommand):
         for u in ldap_users:
             print u
             v = u[1]
-            user = Users(id=val(v,'uidNumber'),first_name=val(v,'givenName'),last_name=val(v,'sn'),username=val(v,'uid'),title=val(v,'title'),phone1=val(v,'telephoneNumber'),phone2=val(v,'mobile'),skype=None,physical_office=val(v,'physicalDeliveryOfficeName'),google_status=get_google_enum(val(v,'googleStatus')),picture_uploaded_date=None,suspended_date=None)
+            u_id = val(v, 'uidNumber')
+            try:
+                user = Users.objects.get(id=u_id)
+            except Users.DoesNotExist:
+                user = Users(id=u_id)
+            user.first_name=val(v,'givenName')
+            user.last_name=val(v,'sn')
+            user.username=val(v, 'uid')
+            user.title=val(v,'title')
+            user.phone1=val(v,'telephoneNumber')
+            user.phone2=val(v,'mobile')
+            user.skype=None
+            user.physical_office=val(v,'physicalDeliveryOfficeName')
+            user.google_status=get_google_enum(val(v,'googleStatus'))
+            user.picture_uploaded_date=None
+            user.suspended_date=None
             if 'shadowLastChange' in v:
                 user.shadow_last_change = val(v,'shadowLastChange')
             if 'shadowMax' in v:
@@ -157,11 +172,29 @@ class Command(BaseCommand):
                 return
             # check the type of the group (project, server or generic group)
             if "ou=Projects" in g[0]:
-                group = Projects(id=val(v,'gidNumber'),name=val(v,'cn'),description=val(v,'description') or "")
+                prj_id = val(v,'gidNumber')
+                try:
+                    group = Projects.objects.get(id=prj_id)
+                except Projects.DoesNotExist:
+                    group = Projects(id=prj_id)
+                group.name=val(v,'cn')
+                group.description=val(v,'description') or ""
             elif "ou=Hosts" in g[0]:
-                group = Servers(id=val(v,'gidNumber'),name=val(v,'cn'),description=val(v,'description') or "")
+                try:
+                    srv_id=val(v, 'gidNumber')
+                    group = Servers.objects.get(id=srv_id)
+                except Servers.DoesNotExist:
+                    group = Servers(id=srv_id)
+                group.name=val(v,'cn')
+                group.description=val(v,'description') or ""
             else:
-                group = Groups(id=val(v,'gidNumber'),name=val(v,'cn'),description=val(v,'description') or "")
+                grp_id = val(v, 'gidNumber')
+                try:
+                    group = Groups.objects.get(id=grp_id)
+                except Groups.DoesNotExist:
+                    group = Groups(id=grp_id)
+                group.name=val(v,'cn')
+                group.description=val(v,'description') or ""
                 ids.append(group.id)
                 if group.id is None:
                     empty.append(group)
@@ -182,8 +215,8 @@ class Command(BaseCommand):
                         if not isEmailAddressValid(proxy):
                             #print "invalid email", proxy
                             continue
-                        mail_alias = EMailAliases(address=proxy, parent=email)
-                        mail_alias.save()
+                        if not EMailAliases.objects.filter(address=proxy).count():
+                            EMailAliases(address=proxy, parent=email).save()
             elif 'proxyaddress' in v:
                 log.debug("group "+group.name+" doesn't have a primary email, but shill has email aliases... not good!")
             # group members
