@@ -261,6 +261,10 @@ class LDAPGroupModel(LDAPModel):
     def get_email(self):
         return get_generic_email(self.email)
 
+    def get_email_editable(self):
+        email = get_generic_email(self.email)
+        return email.address if email else ''
+
     class Meta:
         abstract = True
 
