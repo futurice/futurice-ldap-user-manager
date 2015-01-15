@@ -405,7 +405,7 @@ class UsersViewSet(ListMixin, LDAPViewSet):
             user.ldap.op_modify(user.get_dn(),
                     [(ldap.MOD_ADD, 'objectClass', SSHKey.LDAP_OBJCLS)])
 
-        with transaction.commit_on_success():
+        with transaction.atomic():
             ssh_key = SSHKey(user=user, title=request.DATA['title'],
                     key=request.DATA['key'])
             ssh_key.save()
@@ -511,4 +511,4 @@ def list_employees(request):
                 rs.append(UsersSerializer(user).data)
         data = JSONRenderer().render(rs)
         cache.set(KEY, data, 1800)
-    return HttpResponse(data, mimetype='application/json')
+    return HttpResponse(data, content_type='application/json')

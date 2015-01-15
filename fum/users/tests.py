@@ -166,28 +166,30 @@ class UserTest(LdapTransactionSuite):
         self.assertEqual(Users.objects.get(username=self.USERNAME).get_email().address, "testi.teemu@futurice.com")
 
     def test_change_password(self):
-        self.assertEqual(self.user.password, '')
+        self.assertNotEqual(self.user.password, '')
+        self.assertEqual(self.user.get_changes('ldap'), {})
         u = Users()
         self.assertTrue('password' not in u.get_changes())
         self.assertTrue('created' in u.get_changes())
-        u_values = u._as_dict()
-        self.assertTrue(all(k in u_values for k in u.ldap_only_fields.keys()))
+        u_values = u.get_changes('ldap').keys()
+        self.assertTrue(all(k in u.ldap_only_fields.keys() for k in u_values))
 
         current_password = self.ldap_val('userPassword', self.user)
         current_google_password = self.ldap_val('googlePassword', self.user)
         current_samba_password = self.ldap_val('sambaNTPassword', self.user)
 
-        password = random_ldap_password()
 
         self.user.shadow_last_change = (datetime.datetime.now() - datetime.timedelta(days=5) - EPOCH).days
         self.user.save()
         shadow_last_change = copy.deepcopy(self.user.shadow_last_change)
 
+        password = random_ldap_password()
         self.user.set_ldap_password(password)
+        self.assertEqual(self.user.get_changes('ldap'), {})
         self.assertNotEqual(self.ldap_val('userPassword', self.user), current_password)
         self.assertNotEqual(self.ldap_val('googlePassword', self.user), current_google_password)
         self.assertNotEqual(self.ldap_val('sambaNTPassword', self.user), current_samba_password)
-        self.assertEqual(self.user.password, '')
+        self.assertNotEqual(self.user.password, '')
         self.assertNotEqual(self.user.shadow_last_change, shadow_last_change)
 
     def test_leaving_planmill_not_allowed(self):

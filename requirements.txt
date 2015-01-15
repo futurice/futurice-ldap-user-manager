@@ -1,5 +1,4 @@
---extra-index-url=http://pypi.fum.futurice.com/simple/
-Django==1.5.5
+Django==1.7.3
 psycopg2==2.5.2
 python-dateutil==2.1
 django-extensions==1.2.0
@@ -10,12 +9,11 @@ watchdog==0.6.0
 assetgen==0.3.4
 Werkzeug==0.9.1
 Markdown==2.3.1
-django-filter==0.6
-djangorestframework==2.3.9
+django-filter==0.9.1
+djangorestframework==2.4.4
 django-rest-framework-docs==0.1.7
 django-crispy-forms==1.3.2
 django-haystack==2.0.0
-django-ignoretests==0.3.2
 pysolr==3.0.6
 lxml==3.2.3
 smbpasswd==1.0.2
@@ -24,12 +22,11 @@ PIL==1.1.7
 python-memcached==1.53
 diff-match-patch==20120106
 ldappool==1.0
-South==0.8.2
 django_js_utils_ng==0.5.futu
 sshpubkeys==1.0.5
 
-django-history==0.1.6
-mockldap==0.1.4futu
-slumber==0.6.5.futu
+django-history==0.2.2
+git+https://github.com/mixman/mockldap#egg=mockldap
+slumber-fork==0.6.3
 
 daemon

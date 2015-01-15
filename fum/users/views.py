@@ -63,4 +63,4 @@ def users_json(request):
             users.append(json_user)
     except KeyError:
         users = [user.username for user in Users.objects.all()]
-    return HttpResponse(json.dumps(users), mimetype='application/json')
+    return HttpResponse(json.dumps(users), content_type='application/json')

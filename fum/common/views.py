@@ -18,44 +18,12 @@ import pysolr
 import json
 
 from fum.ldap_helpers import test_user_ldap
-from fum.models import Users, AuditLogs
+from fum.models import Users
 from .util import to_json
 
 import logging
 
 log = logging.getLogger(__name__)
-
-class AuditView(TemplateView):
-    template_name = "common/audit.html"
-    def get(self, request, *args, **kwargs):
-        logs = AuditLogs.objects.all()
-        q = Q()
-        header = 'for'
-        target = 'everything'
-        try:
-            uid, oid, otype = [int(request.GET.get(k, 0)) for k in ['uid','oid','otype']]
-        except ValueError, e:
-            uid, oid, otype = None, None, None
-        if otype:
-            q = q & Q(otype=otype)
-            if oid:
-                q = q & Q(oid=oid)
-            target = AuditLogs().get_target(otype, oid)
-            # related objects
-            q = q | Q(rotype=otype, roid=oid)
-        if uid:
-            q = q & Q(uid=uid)
-            header = 'actions by'
-            target = Users.objects.get(pk=uid)
-        logs = logs.filter(q)
-        logs = logs.order_by('-id')[:100] # TODO: paginate
-        c = {
-        'logs':logs,
-        'header': header,
-        'target': target,
-        'uid': uid,
-        }
-        return self.render_to_response(c)
 
 def query(q, limit=None):
     if not q:
@@ -89,7 +57,7 @@ class SearchView(TemplateView):
                 i['type'] = item.model_name
                 i['url'] = item.object.get_absolute_url()
                 r.append(i)
-            return HttpResponse(to_json(r), mimetype='application/json')
+            return HttpResponse(to_json(r), content_type='application/json')
         else:
             context = {'search_query': search_query,
                     'result': result}
@@ -108,24 +76,24 @@ def enable_superuser(request):
                 request.session.pop('sudo_timeout')
                 if timeout < now:
                     response['desc'] = 'Sudoer timeout, please refresh.'
-                    return HttpResponse(json.dumps(response), status=401, mimetype='application/json')
+                    return HttpResponse(json.dumps(response), status=401, content_type='application/json')
             try:
                 password = request.REQUEST['password']
             except KeyError: 
                 response['desc'] = 'No password in form.'
-                return HttpResponse(json.dumps(response), status=400, mimetype='application/json')
+                return HttpResponse(json.dumps(response), status=400, content_type='application/json')
         
             user = Users.objects.get(username=request.user.username)
             if not (user.is_in_teamit() and test_user_ldap(user.username, password, user.ldap.connection)):
                 response['desc'] = 'Incorrect password or unauthorized user.'
-                return HttpResponse(json.dumps(response), status=401, mimetype='application/json')
+                return HttpResponse(json.dumps(response), status=401, content_type='application/json')
 
         # Session was valid or password was correct, start/renew session
         endtime = datetime.utcnow() + timedelta(minutes=settings.SUDO_TIMEOUT)
         request.session['sudo_timeout'] = endtime
         # Hack to avoid timezone problems
         response['desc'] = (endtime+(datetime.now()-datetime.utcnow())).strftime('%s')
-        return HttpResponse(json.dumps(response), status=200, mimetype='application/json')
+        return HttpResponse(json.dumps(response), status=200, content_type='application/json')
             
 def end_superuser(request):
     if request.is_ajax():
@@ -135,7 +103,7 @@ def end_superuser(request):
             request.session.pop('sudo_timeout')
 
         response['desc'] = 'Sudo mode ended.'
-        return HttpResponse(json.dumps(response), status=200, mimetype='application/json')
+        return HttpResponse(json.dumps(response), status=200, content_type='application/json')
 
 def filter_by_permissions(request, user, groups):
     groups_filtered = []

@@ -78,9 +78,9 @@ def projects_json(request):
             projects.append(json_project)
     except KeyError:
         projects = [project.name for project in filter_by_permissions(request, user, Projects.objects.all())]
-    return HttpResponse(json.dumps(projects), mimetype='application/json')
+    return HttpResponse(json.dumps(projects), content_type='application/json')
 
 def projects_detail_json(request, projectname):
     project = get_object_or_404(Groups, name=groupname)
     users = [user.username for user in project.users.all()]
-    return HttpResponse(json.dumps(users), mimetype='application/json')
+    return HttpResponse(json.dumps(users), content_type='application/json')

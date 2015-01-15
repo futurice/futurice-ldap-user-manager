@@ -12,7 +12,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.test.utils import override_settings
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.db.models.signals import pre_delete, post_delete, post_init, post_save, m2m_changed
 
 from mock import patch, MagicMock, PropertyMock
@@ -24,7 +24,7 @@ from ldap import modlist
 from fum.ldap_helpers import test_user_ldap, ldap_cls, PoolLDAPBridge
 from fum.models import (
     Users, Servers, Groups, Projects, EMails, EMailAliases, BaseGroup,
-    Resource, AuditLogs, SSHKey,
+    Resource, SSHKey,
 )
 
 import datetime, json, sys, copy, os, time
@@ -91,7 +91,6 @@ class ChangesTestCase(LdapSuite):
 
     def tearDown(self):
         Resource.objects.all().delete()
-        AuditLogs.objects.all().delete()
         super(ChangesTestCase, self).tearDown()
 
     def test_user_create(self):
@@ -119,22 +118,9 @@ class ChangesTestCase(LdapSuite):
         r = Resource(name=name, url='http://woot.com')
         r.content_object = self.user
         r.save()
-        change = AuditLogs.objects.all().order_by('-id')[0]
-        self.assertEqual(change.roid, self.user.pk)
-        self.assertEqual(change.oid, r.pk)
-        fmt = change.fmt()
-        self.assertEqual(fmt['operation'], 'create')
-        self.assertEqual(fmt['diff'], [])
-        self.assertEqual(len(fmt['data']['attrs']), 0)
 
         r.name = 'woof woof'
         r.save()
-        change = AuditLogs.objects.all().order_by('-id')[0]
-        fmt = change.fmt()
-        self.assertEqual(fmt['operation'], 'update')
-        self.assertEqual(len(fmt['data']['attrs']), 1)
-        self.assertEqual(fmt['data']['attrs'][0]['old'], name)
-        self.assertEqual(fmt['data']['attrs'][0]['new'], r.name)
 
     def test_resource_create_without_schema(self):
         name = 'woot.com'
@@ -1099,7 +1085,7 @@ class DataIntegrityTestCase(LdapTransactionSuite):
 
     def test_save_exception_in_changes(self):
         name = 'Abe0'
-        with patch('fum.api.changes.send_data') as o:
+        with patch('fum.common.signals.injection') as o:
             o.side_effect = ChaosException
             server_mock = Servers(name=name)
             try:
@@ -1108,12 +1094,13 @@ class DataIntegrityTestCase(LdapTransactionSuite):
                 pass
             with self.assertRaises(Servers.DoesNotExist):
                 Servers.objects.get(name=name)
+
             with self.assertRaises(KeyError):
                 self.ldap_val('cn', server_mock)
 
     def test_save_exception_in_signal_postsave(self):
         name = 'Abe1'
-        with patch('fum.api.changes.changes_save', autospec=True) as o:
+        with patch('fum.common.signals.injection') as o:
             self.add_signal(post_save, receiver=o, sender=Servers, dispatch_uid='test_mocked_handler')
 
             o.side_effect = ChaosException

@@ -54,8 +54,3 @@ class SudoersManyField(LdapManyToManyField):
     def lval(self, parent, extra_attrs=[]): # value in LDAP
         attrs = list(set(self.ldap_attrs()+extra_attrs))
         return parent.ldap.fetch(self.get_dn(parent=parent, child=None), filters=parent.ldap_filter, attrs=attrs)
-
-
-from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ['^fum\.common\.fields\.UsersManyField'])
-add_introspection_rules([], ['^fum\.common\.fields\.SudoersManyField'])

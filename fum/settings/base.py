@@ -58,7 +58,6 @@ STATIC_URL = '/static/'
 
 MIDDLEWARE_CLASSES = (
     'fum.common.middleware.ThreadLocals',
-    'django.middleware.transaction.TransactionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -90,10 +89,10 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
 
-    'south',
     'django_extensions',
     'crispy_forms',
-    'haystack',
+    #'haystack',
+    'djangohistory',
     'rest_framework',
     'rest_framework_docs',
     'rest_framework.authtoken',
@@ -184,6 +183,7 @@ CACHES = {
 }
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_COOKIE_NAME = copy.deepcopy(PROJECT_NAME)
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'# TODO: json error in core.signing with JSONSerializer
 
 HAYSTACK_CONNECTIONS = {
     'default': {
@@ -213,7 +213,7 @@ LDAP_CONNECTION_OPTIONS = {
     ldap.OPT_NETWORK_TIMEOUT: float(LDAP_TIMEOUT),
     ldap.OPT_PROTOCOL_VERSION: ldap.VERSION3,
 }
-LDAP_SHADOWMAX = 367
+LDAP_SHADOWMAX = 365
 
 # CHANGES WEBSOCKET ENDPOINT
 CHANGES_SOCKET = '/tmp/fum3changes.sock'
@@ -242,6 +242,13 @@ FUM_LAUNCH_DAY = datetime.datetime.now().replace(year=2013, day=20, month=10)
 CRISPY_TEMPLATE_PACK = 'bootstrap'
 
 SSH_KEY_MIN_BITS = 2048
+
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
+DJANGO_HISTORY_SETTINGS = {
+'GET_CURRENT_REQUEST': ('fum.common.middleware', 'get_current_request'),
+}
+DJANGO_HISTORY_TRACK = False
 
 try:
     # add any secrets here; local_settings needs to be somewhere in PYTHONPATH (eg. project-root, user-root)

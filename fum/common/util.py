@@ -45,7 +45,7 @@ def get_binary_fields():
 def send_mail(subject, message, from_email, recipient_list, fail_silently=False):
     return django_send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list, fail_silently=fail_silently)
 
-def random_ldap_password(size=10, types=None):
+def random_ldap_password(size=12, types=None):
     """ An LDAP password is a combination of lowercase, uppercase, digits, and special characters with characters from atleast three groups present """
     types = types or [string.lowercase, string.uppercase, '123456789', '#./+-_&"%']
     bucket_size = size/len(types)

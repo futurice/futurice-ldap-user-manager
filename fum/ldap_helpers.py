@@ -93,9 +93,6 @@ class LDAPBridge(object):
             self.creating = False if self.parent_instance.pk else True
             self.dn = self.parent_instance.get_dn()
 
-    def for_testing(self):
-        pass
-
     def fetch(self, dn, filters='(objectClass=*)', attrs=None, scope=ldap.SCOPE_BASE):
         result = self.op_search(dn, scope, filters, attrs)
         if scope == ldap.SCOPE_BASE:

@@ -79,9 +79,9 @@ def servers_json(request):
             servers.append(json_server)
     except KeyError:
         servers = [server.name for server in filter_by_permissions(request, user, Servers.objects.all())]
-    return HttpResponse(json.dumps(servers), mimetype='application/json')
+    return HttpResponse(json.dumps(servers), content_type='application/json')
 
 def server_detail_json(request, servername):
     server = get_object_or_404(Groups, name=groupname)
     users = [user.username for user in server.users.all()]
-    return HttpResponse(json.dumps(users), mimetype='application/json')
+    return HttpResponse(json.dumps(users), content_type='application/json')

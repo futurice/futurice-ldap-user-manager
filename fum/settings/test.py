@@ -24,9 +24,3 @@ if sys.argv and 'test' in sys.argv:
     if test_breaking_cls in MIDDLEWARE_CLASSES:
         MIDDLEWARE_CLASSES = [k for k in MIDDLEWARE_CLASSES if k not in [test_breaking_cls]]
         AUTHENTICATION_BACKENDS = DEFAULT_SETTINGS.AUTHENTICATION_BACKENDS
-
-TEST_RUNNER = "ignoretests.DjangoIgnoreTestSuiteRunner"
-IGNORE_TESTS = (
-    'django_extensions',
-)
-

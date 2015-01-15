@@ -21,6 +21,8 @@ DATABASES = {
     }
 }
 
+INSTALLED_APPS += ('haystack',)
+
 TEMPLATE_LOADERS = ('django.template.loaders.cached.Loader', DEFAULT_SETTINGS.TEMPLATE_LOADERS),
 
 DEPLOYMENT_ROOT = os.path.normpath(os.path.join(PACKAGE_ROOT, '../..'))
