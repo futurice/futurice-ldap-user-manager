@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.utils.timezone import now
 
-from fum.models import Users, EMails, Projects, EPOCH, Groups, Servers, EPOCH
+from fum.models import Users, EMails, Projects, EPOCH, Groups, Servers, EPOCH, calculate_password_valid_days
 from fum.common.ldap_test_suite import LdapSuite, LdapTransactionSuite
 from fum.common.util import random_ldap_password
 import base64, json
@@ -37,7 +37,7 @@ class UserTest(LdapTransactionSuite):
                 lookup=dict(name='Elysium'))
         g.users.add(u)
         self.assertTrue(u.in_group(g))
-        self.assertEqual(uf(u).lval().get('shadowMax'), [str(settings.LDAP_SHADOWMAX)])
+        self.assertEqual(uf(u).lval().get('shadowMax'), [str(calculate_password_valid_days())])
 
         u.set_disabled()
         self.assertEqual(u.get_status(), Users.USER_DISABLED)
