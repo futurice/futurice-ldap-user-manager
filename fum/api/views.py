@@ -188,7 +188,11 @@ class ListMixin(object):
         
         return Response(serializer.data)
 
+class BaseViewSet(viewsets.ModelViewSet):
+    lookup_value_regex = '[^/]+'
+
 class LDAPViewSet(viewsets.ModelViewSet):
+    lookup_value_regex = '[^/]+'# fix for restframework regression moving from 2.3->2.4
 
     def get_queryset(self):
         return self.model.objects.all()
@@ -470,12 +474,12 @@ class ProjectsViewSet(ListMixin, LDAPViewSet):
     def users(self, request, name=None, relname=None):
         return mod_users(request, self.get_object().users, relname=relname)
         
-class EMailsViewSet(viewsets.ModelViewSet):
+class EMailsViewSet(BaseViewSet):
     model = EMails
     serializer_class = EMailsSerializer
     lookup_field = 'address'
 
-class EMailAliasesViewSet(viewsets.ModelViewSet):
+class EMailAliasesViewSet(BaseViewSet):
     model = EMailAliases
     serializer_class = AliasesSerializer
     lookup_field = 'address'

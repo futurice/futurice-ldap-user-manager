@@ -10,6 +10,7 @@ from django.db import models, transaction
 from django.db import IntegrityError
 from django import forms
 from django.utils.timezone import now
+from django.utils import timezone
 
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
@@ -43,17 +44,17 @@ from pprint import pprint as pp
 log = logging.getLogger(__name__)
 
 WEEKDAY_FRIDAY = 4
-EPOCH = datetime(1970, 1, 1)
+EPOCH = datetime(1970, 1, 1, tzinfo=timezone.get_default_timezone())
 
 def shadow_initial():
-    return (datetime.now() - EPOCH).days
+    return (now() - EPOCH).days
 
 def calculate_password_valid_days():
     # Password valid for about 1 year
-    t = datetime.now() + relativedelta(years=1)
+    t = now() + relativedelta(years=1)
     while t.weekday() > WEEKDAY_FRIDAY: # Don't let the expiration date be during the weekend
         t += relativedelta(days=1)
-    return 1+(t - datetime.now()).days # We never get full days, so the +1 is for rounding error
+    return 1+(t - now()).days # We never get full days, so the +1 is for rounding error
 
 def get_generic_email(email):
     if not isinstance(email, EMails):
@@ -271,7 +272,7 @@ class LDAPGroupModel(LDAPModel):
 class BaseGroup(LDAPGroupModel):
     name = models.CharField(max_length=500, unique=True)
     description = models.CharField(max_length=5000, default="", blank=True)
-    created = models.DateTimeField(null=True, blank=True, default=datetime.now)
+    created = models.DateTimeField(null=True, blank=True, default=now)
     editor_group = models.ForeignKey('Groups', null=True, blank=True)
     users = UsersManyField('fum.Users', null=True, blank=True, related_name="%(app_label)s_%(class)s")
     
@@ -405,11 +406,11 @@ class Users(LDAPGroupModel):
         self.google_password = "" + hashlib.sha1(password.encode("utf8")).hexdigest()
         self.samba_password = smbpasswd.nthash(password)
         self.shadow_max = calculate_password_valid_days()
-        self.shadow_last_change = (datetime.now() - EPOCH).days
+        self.shadow_last_change = (now() - EPOCH).days
 
     def expire_password(self, days_left=0):
         self.shadow_max = days_left
-        self.shadow_last_change = (datetime.now().replace(year=datetime.now().year-1) - EPOCH).days
+        self.shadow_last_change = (now().replace(year=now().year-1) - EPOCH).days
 
     first_name = models.CharField(max_length=500, blank=True, null=True)
     last_name = models.CharField(max_length=500)
@@ -428,7 +429,7 @@ class Users(LDAPGroupModel):
     portrait_thumb_name = models.CharField(max_length=500, null=True, blank=True)
     portrait_full_name = models.CharField(max_length=500, null=True, blank=True)
     home_directory = models.CharField(max_length=300, null=True, blank=True)
-    created = models.DateTimeField(null=True, blank=True, default=datetime.now)
+    created = models.DateTimeField(null=True, blank=True, default=now)
     hr_number = models.CharField(max_length=255, null=True, blank=True)
     active_in_planmill = models.IntegerField(default=PLANMILL_DISABLED, choices=ACTIVE_IN_PLANMILL_CHOICES)
     # FK

@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
+from django.utils.timezone import now
 
 from fum.models import Users, EMails, Projects, EPOCH, Groups, Servers, EPOCH
 from fum.common.ldap_test_suite import LdapSuite, LdapTransactionSuite
@@ -179,7 +180,7 @@ class UserTest(LdapTransactionSuite):
         current_samba_password = self.ldap_val('sambaNTPassword', self.user)
 
 
-        self.user.shadow_last_change = (datetime.datetime.now() - datetime.timedelta(days=5) - EPOCH).days
+        self.user.shadow_last_change = (now() - datetime.timedelta(days=5) - EPOCH).days
         self.user.save()
         shadow_last_change = copy.deepcopy(self.user.shadow_last_change)
 
@@ -525,13 +526,13 @@ class ReminderTestCase(LdapSuite):
     def test_remind_password(self):
         du1,u1 = self.create_user('amok')
         du2,u2 = self.create_user('amexpired')
-        now = datetime.datetime.now().replace(hour=0, minute=0, microsecond=0, second=00)
-        u2.shadow_last_change = ((now - datetime.timedelta(days=5)) - EPOCH).days - u1.shadow_max
+        dtnow = now().replace(hour=0, minute=0, microsecond=0, second=00)
+        u2.shadow_last_change = ((dtnow - datetime.timedelta(days=5)) - EPOCH).days - u1.shadow_max
         u2.save()
-        u1.shadow_last_change = ((now - datetime.timedelta(days=5)) - EPOCH).days - u1.shadow_max
+        u1.shadow_last_change = ((dtnow - datetime.timedelta(days=5)) - EPOCH).days - u1.shadow_max
         u1.save()
         u1.email.add(EMails(address='u1@futurice.com', content_object=u1))
-        self.assertTrue( (now-u1.password_expires_date).days, 5-1)
+        self.assertTrue( (dtnow-u1.password_expires_date).days, 5-1)
 
         with self.settings(EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend'):
             with patch('fum.management.commands.remind.send_mail') as o:
@@ -550,9 +551,9 @@ class ReminderTestCase(LdapSuite):
 
     def test_suspend_user(self):
         du1,u1 = self.create_user('amsuspended')
-        now = datetime.datetime.now().replace(hour=0, minute=0, microsecond=0, second=00)
-        u1.shadow_last_change = ((now - datetime.timedelta(days=5)) - EPOCH).days - u1.shadow_max
-        u1.suspended_date = (now - datetime.timedelta(days=5))
+        dtnow = now().replace(hour=0, minute=0, microsecond=0, second=00)
+        u1.shadow_last_change = ((dtnow - datetime.timedelta(days=5)) - EPOCH).days - u1.shadow_max
+        u1.suspended_date = (dtnow - datetime.timedelta(days=5))
         u1.save()
         u1.email.add(EMails(address='u1@futurice.com', content_object=u1))
 
