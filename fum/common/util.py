@@ -4,8 +4,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 import string, random, json
 import diff_match_patch
 
-generator = random.SystemRandom()
-
 class LazyDict(dict):
     def __getattr__(self, key):
         try:
@@ -16,7 +14,7 @@ class LazyDict(dict):
         self[attr] = value
 
 def id_generator(size=10, chars=string.printable):
-    return ''.join(generator.choice(chars) for x in range(size))
+    return ''.join(random.SystemRandom().choice(chars) for x in range(size))
 
 def to_json(data):
     return json.dumps(data, encoding='utf-8', cls=DjangoJSONEncoder, ensure_ascii=False, separators=(',',':'))
