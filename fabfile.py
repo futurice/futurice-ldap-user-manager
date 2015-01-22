@@ -57,7 +57,6 @@ def deploy():
     prepare_hidden_files()
     prepare_assets()
 
-    manage('syncdb --noinput')
     manage('migrate --noinput')
 
     ownership()
@@ -107,7 +106,6 @@ def check():
 @task
 def reset_and_sync():
     manage('reset_db --router=default --noinput')
-    manage('syncdb --noinput')
     manage('datamigrate')
 
 #

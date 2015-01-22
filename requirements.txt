@@ -26,7 +26,7 @@ django_js_utils_ng==0.5.futu
 sshpubkeys==1.0.6
 
 django-history==0.2.2
-git+https://github.com/mixman/mockldap#egg=mockldap
+mockldap==0.1.4
 slumber-fork==0.6.3
 
 daemon
