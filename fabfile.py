@@ -153,6 +153,7 @@ def prepare_python_packages():
             missing_requirements.write(raw_line)
     missing_requirements.flush()
     local('pip install'
+         ' --no-use-wheel'
           ' --allow-external PIL --allow-unverified PIL'
           ' -d {env.local_python_packages_dir}'
           ' --exists-action=i'
@@ -218,6 +219,7 @@ def umask(value='002'):
 
 def pip_install(packages):
     sudo('HOME={env.project_root} pip install'
+         ' --no-use-wheel'
          ' --default-timeout=5'
          ' --no-index'
          ' -f file://{env.python_packages_dir}'
