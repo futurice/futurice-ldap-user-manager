@@ -8,8 +8,9 @@ from django.core.exceptions import ValidationError
 from django.db.models import Max
 from django.db import models, transaction
 from django.db import IntegrityError
-from django.core.urlresolvers import reverse
 from django import forms
+from django.utils.timezone import now
+from django.utils import timezone
 
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
@@ -36,8 +37,6 @@ from fum.common.util import LazyDict, to_json, pretty_diff, random_ldap_password
 from fum.common.fields import LdapManyToManyField, UsersManyField, SudoersManyField
 from fum.util import get_project_models
 
-#from djangohistory.mixins import DirtyFieldsMixin
-
 from rest_framework.authtoken.models import Token
 
 from pprint import pprint as pp
@@ -45,14 +44,17 @@ from pprint import pprint as pp
 log = logging.getLogger(__name__)
 
 WEEKDAY_FRIDAY = 4
-EPOCH = datetime(1970, 1, 1)
+EPOCH = datetime(1970, 1, 1, tzinfo=timezone.get_default_timezone())
+
+def shadow_initial():
+    return (now() - EPOCH).days
 
 def calculate_password_valid_days():
     # Password valid for about 1 year
-    t = datetime.now() + relativedelta(years=1)
+    t = now() + relativedelta(years=1)
     while t.weekday() > WEEKDAY_FRIDAY: # Don't let the expiration date be during the weekend
         t += relativedelta(days=1)
-    return 1+(t - datetime.now()).days # We never get full days, so the +1 is for rounding error
+    return 1+(t - now()).days # We never get full days, so the +1 is for rounding error
 
 def get_generic_email(email):
     if not isinstance(email, EMails):
@@ -171,8 +173,7 @@ class LDAPModel(Mother):
         abstract = True
 
     def audit_url(self):
-        ct = ContentType.objects.get_for_model(self)
-        return reverse("audit") + "?otype=%s&oid=%s" % (ct.pk, self.pk)
+        return reverse('history-by-id', kwargs=dict(ct_id=self.get_content_type().pk, id=self.pk))
 
     def create_ldap_relations(self): # Servers requires SUDOErs, temporary fix until LdapForeignKeys
         pass
@@ -242,55 +243,17 @@ class LDAPModel(Mother):
                 self.pk = maxpk
         return self.pk
 
-    @transaction.commit_manually
+    @transaction.atomic
     def save(self, *args, **kwargs):
-        '''
-        Save a model that has updated/new ldap-fields
-        '''
-        try:
-            transaction.commit()
-            self.changes = self.get_changes()
-            self.full_clean()
-            self.ldap.creating = self._state.adding
+        self.full_clean() # .clean() adds information
+        def _custom_changes_for_save(instance, kwargs):
             custom_changes = kwargs.pop('changes', None)
             if custom_changes:
                 for k,v in custom_changes.iteritems():
-                    setattr(self, k, v['new'])
-            changes = custom_changes or self.get_changes() # copy state before post_save signal resets mixin-state
-            self.get_next_id()
-            primary_key_provided = copy.deepcopy(self.id)
-            super(LDAPModel, self).save(*args, **kwargs) # SAVE TO DATABASE
-
-            if not self.ldap.creating and not kwargs.get('force_insert', False):
-                self.ldap.save(values=changes)
-            else:
-                new_attrs = {}
-                new_attrs['objectClass'] = self.ldap_object_classes
-                gu_id = self.pk
-                new_attrs[self.ldap_id_number_field] = "%d"%gu_id
-                new_attrs.update(self.create_static_fields(ldap_id_number=gu_id))
-
-                try:
-                    # .create_raw() for Servers SUDOers is problematic.
-                    # - related records should never cause failure
-                    self.create_ldap_relations()
-                except ldap.ALREADY_EXISTS, e:
-                    print e
-
-                try:
-                    # LDAP out of sync? Overwrite with new values.
-                    self.ldap.create(dn=self.get_dn(), values=changes, extra=new_attrs)
-                except ldap.ALREADY_EXISTS, e:
-                    # delete old entry, and re-create, or just update?
-                    self.ldap.save(force_update=True)
-                    print e
-            self.ldap.creating = self._state.adding
-            self.ldap.for_testing() # for testing purposes
-        except Exception, e:
-            transaction.rollback()
-            raise
-        else:
-            transaction.commit()
+                    setattr(instance, k, v['new'])
+        _custom_changes_for_save(self, kwargs)
+        self.changes_copy = self.get_changes()#store changes before post_save() cleans state
+        super(LDAPModel, self).save(*args, **kwargs)
 
 class LDAPGroupModel(LDAPModel):
     resources = generic.GenericRelation('fum.Resource')
@@ -299,20 +262,26 @@ class LDAPGroupModel(LDAPModel):
     def get_email(self):
         return get_generic_email(self.email)
 
+    def get_email_editable(self):
+        email = get_generic_email(self.email)
+        return email.address if email else ''
+
     class Meta:
         abstract = True
 
 class BaseGroup(LDAPGroupModel):
     name = models.CharField(max_length=500, unique=True)
     description = models.CharField(max_length=5000, default="", blank=True)
-    created = models.DateTimeField(null=True, blank=True, default=datetime.now)
+    created = models.DateTimeField(null=True, blank=True, default=now)
     editor_group = models.ForeignKey('Groups', null=True, blank=True)
     users = UsersManyField('fum.Users', null=True, blank=True, related_name="%(app_label)s_%(class)s")
     
     ldap_id_field="cn"
     ldap_fields = {
-                'get_ldap_cn': 'cn',
                 'description':'description',}
+    ldap_only_fields = {
+                'get_ldap_cn': 'cn',
+            }
     # remove sambaGroupMapping only after sambaGroupType,sambaSID removed in LDAP for every entry
     ldap_object_classes = ['top', 'posixGroup', 'groupOfUniqueNames', 'mailRecipient', 'google', 'sambaGroupMapping']
     ldap_base_dn = settings.GROUP_DN
@@ -437,11 +406,11 @@ class Users(LDAPGroupModel):
         self.google_password = "" + hashlib.sha1(password.encode("utf8")).hexdigest()
         self.samba_password = smbpasswd.nthash(password)
         self.shadow_max = calculate_password_valid_days()
-        self.shadow_last_change = (datetime.now() - EPOCH).days
+        self.shadow_last_change = (now() - EPOCH).days
 
     def expire_password(self, days_left=0):
         self.shadow_max = days_left
-        self.shadow_last_change = (datetime.now().replace(year=datetime.now().year-1) - EPOCH).days
+        self.shadow_last_change = (now().replace(year=now().year-1) - EPOCH).days
 
     first_name = models.CharField(max_length=500, blank=True, null=True)
     last_name = models.CharField(max_length=500)
@@ -455,12 +424,12 @@ class Users(LDAPGroupModel):
     picture_uploaded_date = models.DateTimeField(null=True, blank=True, editable=False)
     suspended_date = models.DateTimeField(null=True, blank=True)
     publickey = models.TextField(null=True, blank=True)
-    shadow_last_change = models.IntegerField(default=lambda:(datetime.now() - EPOCH).days,null=True, blank=True,editable=False) # last time password was changed, in days since EPOCH
+    shadow_last_change = models.IntegerField(default=shadow_initial,null=True, blank=True,editable=False) # last time password was changed, in days since EPOCH
     shadow_max = models.IntegerField(default=calculate_password_valid_days,null=True, blank=True,editable=False) # how many days the password is valid
     portrait_thumb_name = models.CharField(max_length=500, null=True, blank=True)
     portrait_full_name = models.CharField(max_length=500, null=True, blank=True)
     home_directory = models.CharField(max_length=300, null=True, blank=True)
-    created = models.DateTimeField(null=True, blank=True, default=datetime.now)
+    created = models.DateTimeField(null=True, blank=True, default=now)
     hr_number = models.CharField(max_length=255, null=True, blank=True)
     active_in_planmill = models.IntegerField(default=PLANMILL_DISABLED, choices=ACTIVE_IN_PLANMILL_CHOICES)
     # FK
@@ -577,7 +546,6 @@ class Users(LDAPGroupModel):
     
     ldap_id_field="uid"
     ldap_fields = {
-                'get_ldap_cn':  'cn',
                 'username': ['uid','ntUserDomainId'],
                 'first_name':'givenName',
                 'last_name':'sn',
@@ -591,6 +559,7 @@ class Users(LDAPGroupModel):
                 'physical_office': 'physicalDeliveryOfficeName',
                 }
     ldap_only_fields = {
+                'get_ldap_cn':  'cn',
                 'password': 'userPassword',
                 'google_password': 'googlePassword',
                 'samba_password': 'sambaNTPassword',
@@ -679,11 +648,13 @@ class Users(LDAPGroupModel):
         if not self.home_directory:
             self.home_directory = ('/home/%s/%s' % (self.username[0],self.username)).encode('ascii')
 
-        # Once in PlanMill, always in PlanMill
-        if hasattr(self, 'changes') and 'active_in_planmill' in self.changes:
-            if self.changes['active_in_planmill']['old'] <> Users.PLANMILL_DISABLED \
-                    and self.changes['active_in_planmill']['new'] == Users.PLANMILL_DISABLED:
-                raise ValidationError('Can not disable a once active PlanMill user')
+        # (django-history) Once in PlanMill, always in PlanMill
+        if hasattr(self, 'get_changes'):
+            changes = self.get_changes()
+            if 'active_in_planmill' in changes and \
+                changes['active_in_planmill']['old'] <> Users.PLANMILL_DISABLED \
+                        and changes['active_in_planmill']['new'] == Users.PLANMILL_DISABLED:
+                    raise ValidationError('Can not disable a once active PlanMill user')
 
     def is_sudo_user(self, request):
         actor = ActorPermission(request=request,
@@ -783,50 +754,43 @@ class EMails(Mother):
             else:
                 raise ValidationError("Email is not valid")
     
-    @transaction.commit_manually
+    @transaction.atomic
     def save(self, *args, **kwargs):
         self.address = self.address.strip()
+        # DANGER: For GenericRelation as OneToOne-emulation to work (and EMailAliases to stay intact)
+        # - UNIQUEness ValidationError is waived
+        # - UPDATE first, on failure INSERT
         try:
-            transaction.commit()
-            # DANGER: For GenericRelation as OneToOne-emulation to work (and EMailAliases to stay intact)
-            # - UNIQUEness ValidationError is waived
-            # - UPDATE first, on failure INSERT
-            try:
-                self.full_clean()
-            except ValidationError, e:
-                if 'not valid' in unicode(e):
-                    raise
-                elif 'Enter a valid' in unicode(e):
-                    raise
-                elif 'already exists' in unicode(e):
-                    pass
-                else:
-                    raise
-            try:
-                existing_email = EMails.objects.filter(object_id=self.object_id, content_type=self.content_type)
-                res = existing_email.update(address=self.address)
-                if res==0:
-                    raise Exception
-                existing_email = existing_email[0]
-            except IntegrityError, e:
-                raise ValidationError("Email is taken")
-            except Exception, e:
-                existing_email = None
-                super(EMails, self).save(*args, **kwargs)
-            email = existing_email or self
-            try:
-                # After super.save() no failures allowed.
-                self.content_object.ldap.replace_relation(parent=self.content_object, child=u'%s'%self.address, field=self)
-                # create identical alias for username@futurice.com
-                if settings.EMAIL_DOMAIN in self.address and isinstance(self.content_object, Users):
-                    em, _ = EMailAliases.objects.get_or_create(parent=email, address='{0}{1}'.format(self.content_object.username, settings.EMAIL_DOMAIN))
-            except Exception, e:
-                print "EMails",e
+            self.full_clean()
+        except ValidationError, e:
+            if 'not valid' in unicode(e):
+                raise
+            elif 'Enter a valid' in unicode(e):
+                raise
+            elif 'already exists' in unicode(e):
+                pass
+            else:
+                raise
+        try:
+            existing_email = EMails.objects.filter(object_id=self.object_id, content_type=self.content_type)
+            res = existing_email.update(address=self.address)
+            if res==0:
+                raise Exception
+            existing_email = existing_email[0]
+        except IntegrityError, e:
+            raise ValidationError("Email is taken")
         except Exception, e:
-            transaction.rollback()
-            raise
-        else:
-            transaction.commit()
+            existing_email = None
+            super(EMails, self).save(*args, **kwargs)
+        email = existing_email or self
+        try:
+            # After super.save() no failures allowed.
+            self.content_object.ldap.replace_relation(parent=self.content_object, child=u'%s'%self.address, field=self)
+            # create identical alias for username@futurice.com
+            if settings.EMAIL_DOMAIN in self.address and isinstance(self.content_object, Users):
+                em, _ = EMailAliases.objects.get_or_create(parent=email, address='{0}{1}'.format(self.content_object.username, settings.EMAIL_DOMAIN))
+        except Exception, e:
+            print "EMails",e
 
     class Meta:
         unique_together = ('content_type', 'object_id') # OneToOne emulation for GenericForeignKey
@@ -862,24 +826,16 @@ class EMailAliases(Mother):
 
         super(EMailAliases, self).clean()
 
-    @transaction.commit_manually
+    @transaction.atomic
     def save(self, *args, **kwargs):
-
+        # all model fields always required, manual clean here should be fine: https://code.djangoproject.com/ticket/13100
+        self.full_clean()
+        ret = super(EMailAliases, self).save(*args, **kwargs)
         try:
-            transaction.commit()
-            # all model fields always required, manual clean here should be fine: https://code.djangoproject.com/ticket/13100
-            self.full_clean()
-            ret = super(EMailAliases, self).save(*args, **kwargs)
-            try:
-                # After super.save() no failures allowed.
-                self.parent.content_object.ldap.save_relation(parent=self.parent.content_object, child=u'%s'%self.address, field=self)
-            except Exception, e:
-                print "EMailAliases", e
+            # After super.save() no failures allowed.
+            self.parent.content_object.ldap.save_relation(parent=self.parent.content_object, child=u'%s'%self.address, field=self)
         except Exception, e:
-            transaction.rollback()
-            raise
-        else:
-            transaction.commit()
+            print "EMailAliases", e
         return ret
 
 class Resource(Mother):
@@ -896,138 +852,16 @@ class Resource(Mother):
         if not re.match(r'^.*://.*', unicode(self.url)):
             self.url = u'http://%s'%self.url
 
-    @transaction.commit_manually
     def save(self, *args, **kwargs):
-        try:
-            transaction.commit()
-            self.clean_url()
-            self.full_clean()
-            super(Resource, self).save(*args, **kwargs)
-        except Exception, e:
-            transaction.rollback()
-            raise
-        else:
-            transaction.commit()
+        self.clean_url()
+        self.full_clean()
+        super(Resource, self).save(*args, **kwargs)
 
     def get_absolute_name(self):
         return u'%s (resource)'%self.name
 
     def get_absolute_url(self):
         return u'/'
-
-class AuditLogsManager(MotherManager):
-    def add(self, operation, user=None):
-        user_id = None
-        if user:
-            user_id = user.pk
-        models = get_project_models()
-        for op in operation:
-            md = models[op['objectType']]
-            model = md['model']
-            #operation_object = model.objects.get(**{model.get_by_name(): op['objectId']})
-            operation_object_id = op['instance'].pk
-            # roid,totype added based on change
-            roid = None
-            rotype = None
-            # attrs supports changing many things at the same time, but to fully support
-            # would need to fire many AuditLogs events for each relation
-            related_object = op.get('related_instance', None)
-            if not related_object and model._meta.virtual_fields:
-                gfk = model._meta.virtual_fields[0]
-                if op['instance'].content_type and op['instance'].object_id:
-                    related_object = op['instance'].content_object
-            if related_object:
-                roid = related_object.pk
-                rotype = ContentType.objects.get_for_model(related_object)
-            op.pop('related_instance', None)
-            op.pop('instance', None)
-            alog = self.model(
-                    operation=to_json(op),
-                    oid=operation_object_id,
-                    otype=md['ct'],
-                    uid=user_id,
-                    roid=roid,
-                    rotype=rotype,)
-            alog.save(force_insert=True)
-
-class AuditLogs(models.Model):
-    uid = models.IntegerField(null=True, blank=True, db_index=True)
-
-    operation = models.TextField(null=True, blank=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    oid = models.IntegerField(null=True, blank=True, db_index=True)
-    otype = models.ForeignKey(ContentType, null=True, blank=True)
-    content_object = generic.GenericForeignKey('otype', 'oid')
-
-    roid = models.IntegerField(null=True, blank=True, db_index=True)
-    rotype = models.ForeignKey(ContentType, null=True, blank=True, related_name="rotype")
-    related_content_object = generic.GenericForeignKey('rotype', 'roid')
-
-    objects = AuditLogsManager()
-
-    def find_parent(self, instance):
-        if isinstance(EMails, instance):
-            return instance.content_object
-        elif isinstance(EMailAliases, instance):
-            return instance.parent.content_object
-        elif isinstance(Resource, instance):
-            return instance.content_object
-        else:
-            return instance
-
-    def fmt(self):
-        o = json.loads(self.operation or '{}')
-        key = None
-        d = []
-        models = get_project_models()
-        for change in o['attrs']:
-            if self.roid:
-                op_type = change.get('operation_type', 'add')
-                if op_type == 'add':
-                    color = '<ins style="background-color:#e6ffe6">%s</ins>'
-                elif op_type == 'del':
-                    color = '<del style="background-color:#ffe6e6">%s</del>'
-                else:
-                    raise Exception(op_type)
-                try:
-                    related_model = self.rotype.model_class()
-                    related_instance = related_model.objects.get(**{'id': self.roid})
-                    reltpl = '<a href="%s">%s</a>'%(related_instance.get_absolute_url(), related_instance.get_absolute_name())
-                except Exception, e:
-                    reltpl = 'DELETED'
-                tmp = color%reltpl
-            else:
-                tmp = pretty_diff(str(change['old']), str(change['new']))
-            key = change['attrName']
-            d.append([key, tmp])
-        md = models[o['objectType']]
-        model = md['model']
-        try:
-            target =  model.objects.get(**{model.get_by_name(): o['objectId']})
-        except Exception, e:
-            # TODO: Resource works by ID, not name
-            log.debug('fmt-targeting failed: %s :: %s :: %s' % (e, model, model.get_by_name()))
-            target = 'unknown'
-        return {'operation': o['operation'],
-                'diff': d,
-                'key': key,
-                'data': o,
-                'target':target,}
-
-    def get_target(self, otype, oid):
-        content_type = ContentType.objects.get(pk=otype)
-        model = content_type.model_class()
-        target = model
-        if oid:
-            try:
-                target = model.objects.get(pk=oid)
-            except model.DoesNotExist, e:
-                target = None
-        return target
-
-    def get_user(self):
-        return Users.objects.get(pk=self.uid)
 
 # Monkey see, monkey do | add method to django's auth user
 def get_fum_user(self):

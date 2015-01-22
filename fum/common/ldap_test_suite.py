@@ -71,12 +71,6 @@ class LdapFunctionality(object):
             instance = cls(**kw)
             if hasattr(self, 'created_objects'):
                 self.created_objects.append(instance)
-            try:
-                # delete from LDAP first, for clean slate
-                if hasattr(instance, 'ldap'): # EMailAliases has no .ldap
-                    instance.ldap.delete(dn=instance.get_dn())
-            except Exception, e:
-                print "[___]", e
 
             if save_kw:
                 instance.save(**save_kw)

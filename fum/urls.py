@@ -18,6 +18,7 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^rest-api/', include('rest_framework_docs.urls')),
     url(r'^hsearch/', include('haystack.urls')),
+    url(r'^history/', include('djangohistory.urls')),
 )
 
 if settings.DEBUG:

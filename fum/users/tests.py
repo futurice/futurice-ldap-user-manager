@@ -3,8 +3,9 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
+from django.utils.timezone import now
 
-from fum.models import Users, EMails, Projects, EPOCH, Groups, Servers, EPOCH
+from fum.models import Users, EMails, Projects, EPOCH, Groups, Servers, EPOCH, calculate_password_valid_days
 from fum.common.ldap_test_suite import LdapSuite, LdapTransactionSuite
 from fum.common.util import random_ldap_password
 import base64, json
@@ -36,7 +37,7 @@ class UserTest(LdapTransactionSuite):
                 lookup=dict(name='Elysium'))
         g.users.add(u)
         self.assertTrue(u.in_group(g))
-        self.assertEqual(uf(u).lval().get('shadowMax'), [str(settings.LDAP_SHADOWMAX)])
+        self.assertEqual(uf(u).lval().get('shadowMax'), [str(calculate_password_valid_days())])
 
         u.set_disabled()
         self.assertEqual(u.get_status(), Users.USER_DISABLED)
@@ -166,28 +167,30 @@ class UserTest(LdapTransactionSuite):
         self.assertEqual(Users.objects.get(username=self.USERNAME).get_email().address, "testi.teemu@futurice.com")
 
     def test_change_password(self):
-        self.assertEqual(self.user.password, '')
+        self.assertNotEqual(self.user.password, '')
+        self.assertEqual(self.user.get_changes('ldap'), {})
         u = Users()
         self.assertTrue('password' not in u.get_changes())
         self.assertTrue('created' in u.get_changes())
-        u_values = u._as_dict()
-        self.assertTrue(all(k in u_values for k in u.ldap_only_fields.keys()))
+        u_values = u.get_changes('ldap').keys()
+        self.assertTrue(all(k in u.ldap_only_fields.keys() for k in u_values))
 
         current_password = self.ldap_val('userPassword', self.user)
         current_google_password = self.ldap_val('googlePassword', self.user)
         current_samba_password = self.ldap_val('sambaNTPassword', self.user)
 
-        password = random_ldap_password()
 
-        self.user.shadow_last_change = (datetime.datetime.now() - datetime.timedelta(days=5) - EPOCH).days
+        self.user.shadow_last_change = (now() - datetime.timedelta(days=5) - EPOCH).days
         self.user.save()
         shadow_last_change = copy.deepcopy(self.user.shadow_last_change)
 
+        password = random_ldap_password()
         self.user.set_ldap_password(password)
+        self.assertEqual(self.user.get_changes('ldap'), {})
         self.assertNotEqual(self.ldap_val('userPassword', self.user), current_password)
         self.assertNotEqual(self.ldap_val('googlePassword', self.user), current_google_password)
         self.assertNotEqual(self.ldap_val('sambaNTPassword', self.user), current_samba_password)
-        self.assertEqual(self.user.password, '')
+        self.assertNotEqual(self.user.password, '')
         self.assertNotEqual(self.user.shadow_last_change, shadow_last_change)
 
     def test_leaving_planmill_not_allowed(self):
@@ -523,13 +526,13 @@ class ReminderTestCase(LdapSuite):
     def test_remind_password(self):
         du1,u1 = self.create_user('amok')
         du2,u2 = self.create_user('amexpired')
-        now = datetime.datetime.now().replace(hour=0, minute=0, microsecond=0, second=00)
-        u2.shadow_last_change = ((now - datetime.timedelta(days=5)) - EPOCH).days - u1.shadow_max
+        dtnow = now().replace(hour=0, minute=0, microsecond=0, second=00)
+        u2.shadow_last_change = ((dtnow - datetime.timedelta(days=5)) - EPOCH).days - u1.shadow_max
         u2.save()
-        u1.shadow_last_change = ((now - datetime.timedelta(days=5)) - EPOCH).days - u1.shadow_max
+        u1.shadow_last_change = ((dtnow - datetime.timedelta(days=5)) - EPOCH).days - u1.shadow_max
         u1.save()
         u1.email.add(EMails(address='u1@futurice.com', content_object=u1))
-        self.assertTrue( (now-u1.password_expires_date).days, 5-1)
+        self.assertTrue( (dtnow-u1.password_expires_date).days, 5-1)
 
         with self.settings(EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend'):
             with patch('fum.management.commands.remind.send_mail') as o:
@@ -548,9 +551,9 @@ class ReminderTestCase(LdapSuite):
 
     def test_suspend_user(self):
         du1,u1 = self.create_user('amsuspended')
-        now = datetime.datetime.now().replace(hour=0, minute=0, microsecond=0, second=00)
-        u1.shadow_last_change = ((now - datetime.timedelta(days=5)) - EPOCH).days - u1.shadow_max
-        u1.suspended_date = (now - datetime.timedelta(days=5))
+        dtnow = now().replace(hour=0, minute=0, microsecond=0, second=00)
+        u1.shadow_last_change = ((dtnow - datetime.timedelta(days=5)) - EPOCH).days - u1.shadow_max
+        u1.suspended_date = (dtnow - datetime.timedelta(days=5))
         u1.save()
         u1.email.add(EMails(address='u1@futurice.com', content_object=u1))
 

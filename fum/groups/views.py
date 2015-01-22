@@ -80,9 +80,9 @@ def groups_json(request):
             groups.append(json_group)
     except KeyError:
         groups = [group.name for group in filter_by_permissions(request, user, Groups.objects.all())]
-    return HttpResponse(json.dumps(groups), mimetype='application/json')
+    return HttpResponse(json.dumps(groups), content_type='application/json')
 
 def group_detail_json(request, pk):
     group = get_object_or_404(Groups, name=pk)
     users = [k['username'] for k in group.users.all().order_by().values('username')]
-    return HttpResponse(json.dumps(users), mimetype='application/json')
+    return HttpResponse(json.dumps(users), content_type='application/json')

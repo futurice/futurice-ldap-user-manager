@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.template.loader import get_template
 from django.template import Context
 from django.conf import settings
+from django.utils.timezone import now
 
 from datetime import datetime
 from optparse import make_option
@@ -37,7 +38,7 @@ class Command(BaseCommand):
 
         if dry:
             log.info("Dry-run. I'm not really sending any emails.")
-        now = datetime.now()
+        dtnow = now()
 
         if 'password' in args:
             log.info("Reminding users of expiring passwords.")
@@ -56,9 +57,11 @@ class Command(BaseCommand):
             with open(LOG_FILE, 'r') as f:
                 text = f.read()
             filedate = datetime.strptime(text, "%Y-%m-%d").date()
-            if not force and datetime.now().date() == filedate:
+            if not force and dtnow.date() == filedate:
                 log.info('Reminders have already been sent today. Use --force to send again.')
                 return
+        except ValueError:
+            log.info('No "lastrun" file with valid datetime found. Assuming first run.')
         except IOError:
             log.info('No "lastrun" file found. Assuming first run.')
 
@@ -68,7 +71,7 @@ class Command(BaseCommand):
             if user.google_status == user.ACTIVEPERSON:
                 if 'password' in args:
                     body = get_template('emails/password_reminder.txt')
-                    days_left =  (user.password_expires_date - now).days
+                    days_left =  (user.password_expires_date - dtnow).days
                     subject = "%s password will expire in %d day%s."%(settings.COMPANY_NAME, days_left, "s" if days_left!=1 else "")
                 
                     if days_left < 0:
@@ -81,7 +84,7 @@ class Command(BaseCommand):
                         self.send(user, subject, body, dry)
 
         with open(LOG_FILE, 'w') as f:
-            text = datetime.now().date().strftime("%Y-%m-%d")
+            text = dtnow.date().strftime("%Y-%m-%d")
             f.write(text)
         os.chmod(LOG_FILE, 0777)
 

@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 from django.core.urlresolvers import NoReverseMatch
 
-from fum.models import Users, Groups, Projects, Servers, AuditLogs
+from fum.models import Users, Groups, Projects, Servers
 from fum.common.middleware import get_current_request
 from fum.common.util import get_binary_fields
 
@@ -109,7 +109,6 @@ def send_data(data):
     user = None
     if request and isinstance(request.user, User):
         user = request.user.get_fum_user()
-    AuditLogs.objects.add(operation=data, user=user)
 
     # Verify format
     CHANGES_FORMAT_KEYS = ['operation','objectType','objectUrl','objectId','timestamp','attrs']
