@@ -246,6 +246,7 @@ class LDAPModel(Mother):
     @transaction.atomic
     def save(self, *args, **kwargs):
         self.full_clean() # .clean() adds information
+        self.pk = self.get_next_id()
         def _custom_changes_for_save(instance, kwargs):
             custom_changes = kwargs.pop('changes', None)
             if custom_changes:
