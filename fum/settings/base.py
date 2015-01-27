@@ -233,7 +233,7 @@ URLS_JS_TO_EXPOSE = [
 'superuser',
 'audit',
 ]
-URLS_EXCLUDE_PATTERN = ['.(?P<format>[a-z]+)',]
+URLS_EXCLUDE_PATTERN = ['.(?P<format>[a-z]+)', '\.(?P<format>[a-z0-9]+)']
 URLS_BASE = '/fum/' # fum.futurice.com/fum/
 
 FUM_LAUNCH_DAY = datetime.datetime.now().replace(year=2013, day=20, month=10)
