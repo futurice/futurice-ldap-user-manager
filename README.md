@@ -26,8 +26,7 @@ mkdir -p media/portraits/full media/portraits/thumb
 # Edit LDAP configuration.
 createdb fum	# If using PostgreSQL
 
-./manage.py syncdb --noinput
-./manage.py migrate
+./manage.py migrate --noinput
 ./manage.py datamigrate
 
 ./manage.py collectstatic --noinput	# rest_framework css/js
