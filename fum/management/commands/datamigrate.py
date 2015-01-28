@@ -186,6 +186,9 @@ class Command(BaseCommand):
                 except Projects.DoesNotExist:
                     group = Projects(id=prj_id)
                 group.name=val(v,'cn')
+                if not re.findall(PROJECT_NAME_REGEX, group.name):
+                    # some old projects don't conform to the regexp
+                    return
                 group.description=val(v,'description') or ""
             elif "ou=Hosts" in g[0]:
                 try:
