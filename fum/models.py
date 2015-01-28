@@ -212,41 +212,10 @@ class LDAPModel(Mother):
         instance = instance or self
         attrs = list(set(instance.ldap_attrs()+extra_attrs))
         return self.ldap.fetch(dn, filters=instance.ldap_filter, attrs=attrs, scope=ldap.SCOPE_BASE)
-    
-    def get_next_id(self):
-        """
-        Sets the pk manually to ensure correlation with ldap.
-        """
-        if self.pk is None:
-
-            if self.ldap_range is None or len(self.ldap_range) != 2 or not (isinstance(self.ldap_range[0], int) and isinstance(self.ldap_range[1], int)):
-                raise RuntimeError("No ldap-range specified for model: %s"%self.__class__)
-
-            if isinstance(self.__class__, Groups):
-                # Special case for groups as teams were moved here and have a different id-range.
-                under3000 = Groups.objects.filter(pk<3000)
-                if under3000.aggregate(Max('pk'))['pk__max'] == 2999:
-                    # No more ids left under 3000, proceed as normal
-                    maxpk = Groups.objects.all().aggregate(Max('pk'))['pk__max'] or self.ldap_range[0]
-                else:
-                    # Use available ids before 3000
-                    maxpk = under3000.aggregate(Max('pk'))['pk__max']
-            else:
-                # Set pk to be the next available id, which should match ldap.
-                maxpk = self.__class__.objects.all().aggregate(Max('pk'))['pk__max'] or self.ldap_range[0]
-            
-            maxpk += 1
-
-            if maxpk > self.ldap_range[1]:
-                raise RuntimeError('No id left in range %s, next was: %s' % (str(self.ldap_range), maxpk))
-            else:
-                self.pk = maxpk
-        return self.pk
 
     @transaction.atomic
     def save(self, *args, **kwargs):
         self.full_clean() # .clean() adds information
-        self.pk = self.get_next_id()
         def _custom_changes_for_save(instance, kwargs):
             custom_changes = kwargs.pop('changes', None)
             if custom_changes:
@@ -271,6 +240,9 @@ class LDAPGroupModel(LDAPModel):
         abstract = True
 
 class BaseGroup(LDAPGroupModel):
+    """
+    Current ldap_range is documented in models, with minimum enforced by DB sequence. No Boundary checks.
+    """
     name = models.CharField(max_length=500, unique=True)
     description = models.CharField(max_length=5000, default="", blank=True)
     created = models.DateTimeField(null=True, blank=True, default=now)
@@ -287,7 +259,6 @@ class BaseGroup(LDAPGroupModel):
     ldap_object_classes = ['top', 'posixGroup', 'groupOfUniqueNames', 'mailRecipient', 'google', 'sambaGroupMapping']
     ldap_base_dn = settings.GROUP_DN
     ldap_id_number_field='gidNumber'
-    ldap_range=[2000,3000]
 
     restricted_fields = ['name', 'editor_group']
 
@@ -573,7 +544,7 @@ class Users(LDAPGroupModel):
     ldap_object_classes = ['inetOrgPerson', 'ntUser', 'account', 'hostObject', 'posixAccount', 'shadowAccount', 'sambaSamAccount', 'organizationalPerson', 'top', 'person', 'google','krbprincipalAux','krbTicketPolicyAux', SSHKey.LDAP_OBJCLS]
     ldap_base_dn=settings.USER_DN
     ldap_id_number_field='uidNumber'
-    ldap_range=[2000,3000]
+    ldap_range=[10000,14999]
 
     def create_static_fields(self,ldap_id_number):
         static_attrs = {}
@@ -667,6 +638,7 @@ class Users(LDAPGroupModel):
 
         
 class Groups(BaseGroup):
+    ldap_range = [15000, 19999]
     def get_absolute_url(self):
         return reverse('groups_detail', kwargs={'slug': self.name})
 
@@ -675,7 +647,7 @@ class Servers(BaseGroup):
 
     ldap_object_classes = copy.deepcopy(BaseGroup.ldap_object_classes)
     ldap_object_classes.append('labeledURIObject')
-    ldap_range = [5000, 6000]
+    ldap_range = [20000, 24999]
     ldap_base_dn = settings.SERVER_DN
     ldap_fields = copy.deepcopy(BaseGroup.ldap_fields)
 
@@ -705,7 +677,7 @@ class Projects(BaseGroup):
     ldap_object_classes.append('labeledURIObject')
 
     ldap_base_dn = settings.PROJECT_DN
-    ldap_range = [4000, 5000]
+    ldap_range = [25000, 34999]
 
     def clean(self):
         if settings.ENFORCE_PROJECT_NAMING:

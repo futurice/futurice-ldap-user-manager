@@ -29,5 +29,4 @@ django-history==0.2.2
 mockldap-fork==0.1.5
 slumber-fork==0.6.3
 raven==5.1.1
-
-daemon
+procboy==0.1.3

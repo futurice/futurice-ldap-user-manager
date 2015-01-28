@@ -5,7 +5,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 import datetime
-import daemon, time, logging, subprocess, os
+import time, logging, subprocess, os
 
 logging.basicConfig(level=logging.INFO)
 
