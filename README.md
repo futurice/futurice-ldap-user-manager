@@ -17,6 +17,7 @@ cp local_settings.py.template local_settings.py
 # Change “company” and “Company” (e.g. to “futurice” and “Futurice”) throughout the file
 # set USE_TLS=False if some LDAP connections don't work
 # Change EMAIL_DOMAIN and EMAIL_HOST (e.g. replace example.com with futurice.com)
+# Change IT_TEAM to an existing group you're part of to get SUDO permission
 ```
 
 Run using Vagrant
