@@ -81,7 +81,7 @@
     </button>
   {% endif %}
   {% if user.sshkey_set.exists %}
-    <table class="table table-striped">
+    <table id="ssh-keys-table" class="table table-striped">
       <tbody>
         {% for ssh_key in user.sshkey_set.filter %}
           <tr>
