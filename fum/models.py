@@ -357,6 +357,14 @@ class SSHKey(models.Model):
         self.full_clean()
         super(SSHKey, self).save(*args, **kwargs)
 
+    def min_bits(self):
+        """
+        The minimum number of bits considered secure for the type of this key.
+        """
+        k = sshpubkeys.SSHKey(self.key)
+        return settings.SSH_KEY_MIN_BITS_FOR_TYPE.get(k.key_type,
+                settings.SSH_KEY_MIN_BITS_DEFAULT)
+
 class Users(LDAPGroupModel):
     """ Phone1, Phone2 are both mobile numbers """
     UNDEFINED = 'undefined'

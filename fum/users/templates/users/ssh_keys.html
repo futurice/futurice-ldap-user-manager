@@ -88,10 +88,10 @@
             <td>
               {{ssh_key.title}}
               (fingerprint <tt>{{ssh_key.fingerprint}})
-              {% if ssh_key.bits < settings.SSH_KEY_MIN_BITS %}
+              {% if ssh_key.bits < ssh_key.min_bits %}
                 <br>
                 <span class="text-warning">{{ssh_key.bits}} bits,
-                  should be ≥ {{settings.SSH_KEY_MIN_BITS}}</span>
+                  should be ≥ {{ssh_key.min_bits}}</span>
               {% endif %}
             </td>
             {% if sudo or user.username == request.META.REMOTE_USER %}
