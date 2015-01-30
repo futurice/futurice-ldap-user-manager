@@ -152,7 +152,6 @@ def prepare_python_packages():
     missing_requirements.flush()
     local('pip install'
          ' --no-use-wheel'
-          ' --allow-external PIL --allow-unverified PIL'
           ' -d {env.local_python_packages_dir}'
           ' --exists-action=i'
           ' -r {missing_requirements_file}'
