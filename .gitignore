@@ -17,3 +17,5 @@ media/
 dist/
 /static/
 /logs/
+
+/.vagrant/

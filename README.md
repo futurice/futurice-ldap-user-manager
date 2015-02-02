@@ -6,6 +6,29 @@ BACKGROUND
 ==========
 **FUM** was created as an internal support system at [Futurice](http://www.futurice.com). It was open sourced as a part of the [Summer of Love](http://blog.futurice.com/summer-of-love-of-open-source) program.
 
+SETUP
+=====
+```bash
+cp local_settings.py.template local_settings.py
+# set the SECRET_KEY to a random string
+# Fill in the LDAP_CONNECTION fields
+# Change “company” and “Company” (e.g. to “futurice” and “Futurice”) throughout the file
+# set USE_TLS=False if some LDAP connections don't work
+# Change EMAIL_DOMAIN and EMAIL_HOST (e.g. replace example.com with futurice.com)
+```
+
+Run using Vagrant
+=================
+Enter your username in `vagrant/REMOTE_USER`, e.g.:
+```bash
+echo username >vagrant/REMOTE_USER
+```
+
+```bash
+vagrant up
+```
+[localhost:8000](http://localhost:8000)
+
 INSTALL
 =======
 
@@ -13,13 +36,6 @@ INSTALL
 apt-get install build-essential python-setuptools python-dev libldap2-dev libsasl2-dev libssl-dev libxslt1-dev
 pip install -r requirements.txt
 npm install
-
-cp local_settings.py.template local_settings.py
-# set the SECRET_KEY to a random string
-# Fill in the LDAP_CONNECTION fields
-# Change “company” and “Company” (e.g. to “futurice” and “Futurice”) throughout the file
-# set USE_TLS=False if LDAP connections don't work
-# Change EMAIL_DOMAIN and EMAIL_HOST (e.g. replace example.com with futurice.com)
 
 mkdir -p media/portraits/full media/portraits/thumb
 
