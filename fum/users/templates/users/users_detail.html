@@ -59,8 +59,10 @@
 <table class="table" id="userform">
     <div id="portrait-holder">
         <img src='{{ object.portrait_thumb_url }}' onerror='this.src="{% static "img/default_portrait.jpeg" %}";' alt="{{object.username}} portrait" id="portrait"></img>
-        <input type="file" id="portrait-upload-file"/>
-        <i id="portrait-upload" title="upload a new image" class="icon-wrench"></i>
+        {% if sudo or object.username == request.META.REMOTE_USER %}
+          <input type="file" id="portrait-upload-file"/>
+          <i id="portrait-upload" title="upload a new image" class="icon-wrench"></i>
+        {% endif %}
         <a id="portrait-download" title="download full size image" class="icon-circle-arrow-down" target="_blank" href='{{ object.portrait_full_url }}' {% if '/None' in object.portrait_full_url %} style="visibility:hidden;" {% endif %}></a>
         <span id="portrait-upload-time" title='{{ object.picture_uploaded_date|date:"H:i:s" }}'>{{ object.picture_uploaded_date|date:"Y/m/d" }}</span>
     </div>
