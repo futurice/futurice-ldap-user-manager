@@ -567,7 +567,7 @@ class LdapTestCase(LdapSuite):
         self.assertEquals(modlist.modifyModlist({'key': 'old-value'}, {'key': ''}), [(1, 'key', None)])
 
         mlist = self.ldap.get_modify_modlist(modified_values)
-        self.assertEquals(mlist, [(2, 'key', '')])
+        self.assertEquals(mlist, [(2, 'key', None)])
 
         modified_values = {'key': 'foo'}
         self.assertEquals(modlist.modifyModlist({'key': ''}, {'key': 'foo'}), [(0, 'key', 'foo')])
