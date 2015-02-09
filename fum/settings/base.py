@@ -240,7 +240,13 @@ FUM_LAUNCH_DAY = datetime.datetime.now().replace(year=2013, day=20, month=10)
 
 CRISPY_TEMPLATE_PACK = 'bootstrap'
 
-SSH_KEY_MIN_BITS = 2048
+# According to https://github.com/futurice/futurice-ldap-user-manager/issues/33
+# the minimum number of bits required to make a key secure depends on its type.
+SSH_KEY_MIN_BITS_FOR_TYPE = {
+    'ssh-ed25519': 256,
+}
+# For any key types not given above
+SSH_KEY_MIN_BITS_DEFAULT = 2048
 
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 

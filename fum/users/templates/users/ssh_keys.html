@@ -81,17 +81,17 @@
     </button>
   {% endif %}
   {% if user.sshkey_set.exists %}
-    <table class="table table-striped">
+    <table id="ssh-keys-table" class="table table-striped">
       <tbody>
         {% for ssh_key in user.sshkey_set.filter %}
           <tr>
             <td>
               {{ssh_key.title}}
               (fingerprint <tt>{{ssh_key.fingerprint}})
-              {% if ssh_key.bits < settings.SSH_KEY_MIN_BITS %}
+              {% if ssh_key.bits < ssh_key.min_bits %}
                 <br>
                 <span class="text-warning">{{ssh_key.bits}} bits,
-                  should be ≥ {{settings.SSH_KEY_MIN_BITS}}</span>
+                  should be ≥ {{ssh_key.min_bits}}</span>
               {% endif %}
             </td>
             {% if sudo or user.username == request.META.REMOTE_USER %}
