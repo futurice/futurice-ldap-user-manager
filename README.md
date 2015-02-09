@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/futurice/futurice-ldap-user-manager.svg?branch=master)](https://travis-ci.org/futurice/futurice-ldap-user-manager)
+
 DESCRIPTION
 ===========
 **FUM** is an user management system for LDAP (Lightweight Directory Access Protocol). FUM makes it easy to handle information about your employees, their projects and servers they have access to. LDAP is a good protocol for user management, but it needs an user-friendly layer on top of it. One of the strengths of FUM is that it gives the users a lot of freedom over their data.
