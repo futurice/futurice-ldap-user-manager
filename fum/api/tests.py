@@ -21,7 +21,7 @@ import unittest
 import ldap
 from ldap import modlist
 
-from fum.ldap_helpers import test_user_ldap, ldap_cls, PoolLDAPBridge
+from fum.ldap_helpers import test_user_ldap, ldap_cls, PoolLDAPBridge, LDAPBridge
 from fum.models import (
     Users, Servers, Groups, Projects, EMails, EMailAliases, BaseGroup,
     Resource, SSHKey,
@@ -52,7 +52,7 @@ replace_user_two=[(2, 'uniqueMember', 'uid=mmal,{0}'.format(settings.USER_DN)),]
 
 delete_user=[(1, 'uniqueMember', 'uid=hhol,{0}'.format(settings.USER_DN)),]
 
-class RawLdapTestCase(TestCase):
+class RawLdapTestCase(LdapSuite):
 
     def test_mod(self):
         l = ldap_cls(parent=None, LDAP_CLASS='fum.ldap_helpers.LDAPBridge')
@@ -154,7 +154,8 @@ class PermissionTestCase(LdapSuite):
         super(PermissionTestCase, self).tearDown()
 
     def test_search(self):
-        results = self.user.ldap.fetch(settings.USER_DN, filters='(ou=*)', scope=ldap.SCOPE_BASE)
+        match_dn = settings.USER_DN
+        results = self.user.ldap.fetch(match_dn.lower(), filters='(ou=*)', scope=ldap.SCOPE_BASE)
         self.assertEqual(results['ou'], ['People'])
 
     def test_delete_bad_dn(self):
@@ -580,7 +581,7 @@ class LdapTestCase(LdapSuite):
 
         self.user.title = ''
         self.user.save()
-        self.assertEquals(self.user.lval().get('title'), None)
+        self.assertTrue(self.user.lval().get('title') in [None, []])# TODO: FIX: mockldap returns [], ldappool None
 
         self.user.title = 'NewTitle'
         self.user.save()
@@ -1392,7 +1393,7 @@ class SSHKeyTestCase(LdapTransactionSuite):
     def get_ldap_ssh_keys(self, user=None):
         user = user or self.user
         data = self.user.ldap.op_search(user.get_dn(),
-                ldap.SCOPE_BASE, 'uid=' + user.username,
+                ldap.SCOPE_BASE, '(uid=' + user.username + ')',
                 [SSHKey.LDAP_ATTR])
         data = data[0][1]
         if SSHKey.LDAP_ATTR in data:
@@ -1456,15 +1457,16 @@ class SSHKeyTestCase(LdapTransactionSuite):
 
         def mocked(*args, **kwargs):
             raise Exception('mock')
-        original = PoolLDAPBridge.op_modify
+        cls = ldap_cls(parent=None).__class__
+        original = cls.op_modify
         try:
-            PoolLDAPBridge.op_modify = mocked
+            cls.op_modify = mocked
 
             with self.assertRaises(Exception):
                 resp = self.client.post(url,
                     {'title': 'k1', 'key': self.valid_ssh_key}, format='json')
         finally:
-            PoolLDAPBridge.op_modify = original
+            cls.op_modify = original
         self.assert_ldap_ssh_key_count(0)
         self.assertEqual(SSHKey.objects.filter(user=self.user).count(), 0)
 

@@ -16,6 +16,7 @@ DATABASES = {
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
 CHANGES_SOCKET_ENABLED = False
 LDAP_MOCK = True
+LDAP_CLASS = 'fum.ldap_helpers.LDAPBridge'
 
 if sys.argv and 'test' in sys.argv:
     print "TEST_MODE: Disabling RemoteUserMiddleware"

@@ -11,15 +11,15 @@ from datetime import datetime
 from pprint import pprint as pp
 
 from fum.common.util import to_json, ldap_log
-from ldappool import ConnectionManager
 
 log = logging.getLogger(__name__)
 
 TOTAL_CONNECTIONS = 0
+from ldappool import ConnectionManager
 cm = ConnectionManager(
-        uri=settings.LDAP_CONNECTION.get('uri'),
-        use_tls=settings.USE_TLS,
-        )
+    uri=settings.LDAP_CONNECTION.get('uri'),
+    use_tls=settings.USE_TLS,
+)
 
 def open_ldap(bind_dn=None, bind_pwd=None):
     return LDAPBridge(parent=None, BIND_DN=bind_dn, BIND_PASSWORD=bind_pwd)

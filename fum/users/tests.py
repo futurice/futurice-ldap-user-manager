@@ -225,8 +225,9 @@ class UserTest(LdapTransactionSuite):
                 lookup=dict(username='bpas'))
         with self.assertRaises(KeyError):
             self.assertEqual(self.ldap_val('userPassword', u), 'no_password_on_user_creation')
-        with self.assertRaises(ldap.CONSTRAINT_VIOLATION):
-            u.set_ldap_password(password)
+        if not settings.LDAP_MOCK:
+            with self.assertRaises(ldap.CONSTRAINT_VIOLATION):
+                u.set_ldap_password(password)
 
     def test_upload_portrait(self):
         with open('%s/fum/users/sample/futucare.png'%settings.PROJECT_ROOT) as fp:

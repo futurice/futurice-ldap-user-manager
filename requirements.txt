@@ -26,7 +26,7 @@ sshpubkeys==1.0.6
 
 django_js_utils_ng==0.5.futu
 django-history==0.2.2
-mockldap-fork==0.1.5
+mockldap-fork==0.1.6
 slumber-fork==0.6.3
 raven==5.1.1
 

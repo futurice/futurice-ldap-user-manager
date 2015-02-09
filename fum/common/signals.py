@@ -41,7 +41,7 @@ def email_delete(sender, *args, **kwargs):
     if instance.content_object:
         try:
             instance.content_object.ldap.delete_relation(parent=instance.content_object, child=u'%s'%instance.address, field=instance)
-        except ldap.NO_SUCH_OBJECT, e:
+        except (ldap.NO_SUCH_OBJECT, ldap.NO_SUCH_ATTRIBUTE) as e:
             pass
 
 @receiver(post_delete, sender=EMailAliases)
@@ -57,7 +57,7 @@ def email_alias_delete(sender, *args, **kwargs):
         return
     try:
         parent.ldap.delete_relation(parent=parent, child=u'%s'%instance.address, field=instance)
-    except ldap.NO_SUCH_OBJECT, e:
+    except (ldap.NO_SUCH_OBJECT, ldap.NO_SUCH_ATTRIBUTE) as e:
         pass
 
 #
@@ -126,7 +126,7 @@ def ldap_m2m(sender, **kwargs):
             elif action == 'post_remove':
                 try:
                     instance.ldap.delete_relation(parent=instance, child=related_instance, field=field)
-                except ldap.NO_SUCH_ATTRIBUTE, e:
+                except (ldap.NO_SUCH_ATTRIBUTE, ldap.NO_SUCH_OBJECT) as e:
                     log.debug("{}: {}".format(action, field.get_dn(instance, related_instance), e))
             elif action == 'pre_add':
                 if not can_add_relation(instance, related_instance, field):

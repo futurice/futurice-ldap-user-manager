@@ -77,7 +77,6 @@ class LdapFunctionality(object):
             else:
                 instance.save()
         except ldap.ALREADY_EXISTS, e:
-            print e
             if not getattr(settings, 'LDAP_MOCK', True):
                 instance = cls(LDAP_CLASS='fum.ldap_helpers.DummyLdap', **kw)
                 try:
