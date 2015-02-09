@@ -59,7 +59,7 @@
 <table class="table" id="userform">
     <div id="portrait-holder">
         <img src='{{ object.portrait_thumb_url }}' onerror='this.src="{% static "img/default_portrait.jpeg" %}";' alt="{{object.username}} portrait" id="portrait"></img>
-        {% if sudo or object.username == request.META.REMOTE_USER %}
+        {% if sudo or object.username == request.user.username %}
           <input type="file" id="portrait-upload-file"/>
           <i id="portrait-upload" title="upload a new image" class="icon-wrench"></i>
         {% endif %}
