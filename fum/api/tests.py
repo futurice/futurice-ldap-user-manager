@@ -154,8 +154,7 @@ class PermissionTestCase(LdapSuite):
         super(PermissionTestCase, self).tearDown()
 
     def test_search(self):
-        match_dn = settings.USER_DN
-        results = self.user.ldap.fetch(match_dn.lower(), filters='(ou=*)', scope=ldap.SCOPE_BASE)
+        results = self.user.ldap.fetch(settings.USER_DN, filters='(ou=*)', scope=ldap.SCOPE_BASE)
         self.assertEqual(results['ou'], ['People'])
 
     def test_delete_bad_dn(self):
