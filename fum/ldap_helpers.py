@@ -146,14 +146,14 @@ class LDAPBridge(object):
     connection = property(_get_bound_connection)
 
     def get_modify_modlist(self, values, force_update=False):
-        """ Current values are always empty, requiring extra hand-holding for empty values.
-        @TODO pass existing values """
+        """ Empty values are not seen as changes due comparing to {};
+        when (empty key values) found, manually added as changed"""
         current_values = {}
         mlist = modlist.modifyModlist(current_values, values)
         mlist_keys = [k[1] for k in mlist]
         for k, m in enumerate(values.keys()):
             if m not in mlist_keys:
-                mlist.append((ldap.MOD_DELETE, m, None))
+                mlist.append((ldap.MOD_REPLACE, m, None))
         for k, m in enumerate(mlist):
             mlist[k] = (ldap.MOD_REPLACE, mlist[k][1], mlist[k][2])
         return mlist

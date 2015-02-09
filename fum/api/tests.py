@@ -574,6 +574,18 @@ class LdapTestCase(LdapSuite):
         mlist = self.ldap.get_modify_modlist(modified_values)
         self.assertEquals(mlist, [(2, 'key', 'foo')])
 
+        self.user.title = 'Title'
+        self.user.save()
+        self.assertEquals(self.user.lval().get('title'), ['Title'])
+
+        self.user.title = ''
+        self.user.save()
+        self.assertEquals(self.user.lval().get('title'), None)
+
+        self.user.title = 'NewTitle'
+        self.user.save()
+        self.assertEquals(self.user.lval().get('title'), ['NewTitle'])
+
 class ApiTestCase(LdapTransactionSuite):
 
     def setUp(self):
