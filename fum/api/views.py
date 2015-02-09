@@ -28,7 +28,7 @@ import ldap
 from ldap import CONSTRAINT_VIOLATION
 from datetime import datetime
 from PIL import Image
-import os
+import os, os.path
 import pytz
 import json
 from pprint import pprint as pp
@@ -310,7 +310,8 @@ class UsersViewSet(ListMixin, LDAPViewSet):
     def portrait(self, request, username=None):
         user = self.get_object()
         data = request.DATA['portrait']
-        crop = (int(request.DATA['left']), int(request.DATA['top']), int(request.DATA['right']), int(request.DATA['bottom']))
+        crop = tuple(max(0, int(request.DATA[k]))
+                for k in ('left', 'top', 'right', 'bottom'))
         if crop == (0, 0, 0, 0):
             crop = (0, 0, 320, 480)
         image = data[data.find('base64,')+7:].decode('base64')
@@ -321,14 +322,13 @@ class UsersViewSet(ListMixin, LDAPViewSet):
         
         # let's save the full image...
         portrait_file_name = '%s%s.jpeg' % (user.username, now_str)
-        portrait_file_path = '%s%s' % (settings.PORTRAIT_FULL_FOLDER, portrait_file_name)
-        portrait_file = open(portrait_file_path, 'wb')
-        portrait_file.write(image)
-        portrait_file.close()
+        portrait_file_path = os.path.join(settings.PORTRAIT_FULL_FOLDER,
+                portrait_file_name)
+        with open(portrait_file_path, 'wb') as portrait_file:
+            portrait_file.write(image)
 
         # ...and then the (cropped) thumb
-        thumb = Image.open(portrait_file.name)
-        w, h = thumb.size
+        thumb = Image.open(portrait_file_path)
         # crop the image and resize it to the official 320x480 format
         thumb = thumb.crop(crop).resize((320,480))
 
@@ -338,19 +338,28 @@ class UsersViewSet(ListMixin, LDAPViewSet):
 
         # save the thumbnail to a file
         thumb_file_name = '%s%s_%s_%s_%s_%s.jpeg' % (user.username, now_str, crop[0], crop[1], crop[2], crop[3])
-        thumb_file_path = '%s%s' % (settings.PORTRAIT_THUMB_FOLDER, thumb_file_name)
-        thumb_file = open(thumb_file_path, 'wb')
-        thumb.save(thumb_file, 'JPEG', quality=100) # Full quality jpeg file
-        thumb_file.close()
+        thumb_file_path = os.path.join(settings.PORTRAIT_THUMB_FOLDER,
+                thumb_file_name)
+        with open(thumb_file_path, 'wb') as thumb_file:
+            thumb.save(thumb_file, 'JPEG', quality=100) # Full quality jpeg file
 
         # set the same file as a string for the user (for ldap sending)
-        thumb_file = open(thumb_file_path, 'rb')
-        user.jpeg_portrait = thumb_file.read()
-        thumb_file.close()
+        with open(thumb_file_path, 'rb') as thumb_file:
+            user.jpeg_portrait = thumb_file.read()
+
+        # save the badge photo
+        badge = Image.open(portrait_file_path).crop(crop)
+        badge_file_name = '{}{}_{}_{}_{}_{}.png'.format(user.username, now_str,
+                *crop)
+        badge_file_path = os.path.join(settings.PORTRAIT_BADGE_FOLDER,
+                badge_file_name)
+        with open(badge_file_path, 'wb') as badge_file:
+            badge.save(badge_file, 'PNG')
 
         # update the timestamp and file names
         user.picture_uploaded_date = now
         user.portrait_thumb_name = thumb_file_name
+        user.portrait_badge_name = badge_file_name
         user.portrait_full_name = portrait_file_name
 
         try: # try to save to local db and ldap
@@ -358,11 +367,55 @@ class UsersViewSet(ListMixin, LDAPViewSet):
         except Exception, e: # save failed, remove the uploaded images and return error
             os.remove(thumb_file_path)
             os.remove(portrait_file_path)
+            os.remove(badge_file_path)
             return Response("Error writing to LDAP", status=500)
 
         # alles gut, return the urls to the new images
-        ret = {'thumb': '%s%s' % (settings.PORTRAIT_THUMB_URL, thumb_file_name), 'full': '%s%s' % (settings.PORTRAIT_FULL_URL, portrait_file_name), 'day': now_local.strftime('%Y/%m/%d'), 'time': now_local.strftime('%H:%M:%S')}
+        ret = {
+            'thumb': '%s%s' % (settings.PORTRAIT_THUMB_URL, thumb_file_name),
+            'full': '%s%s' % (settings.PORTRAIT_FULL_URL, portrait_file_name),
+            'badge': '{}{}'.format(settings.PORTRAIT_BADGE_URL, badge_file_name),
+            'day': now_local.strftime('%Y/%m/%d'),
+            'time': now_local.strftime('%H:%M:%S'),
+        }
         return Response(json.dumps(ret), status=200)
+
+    @action(methods=['post'])
+    def badgecrop(self, request, username=None):
+        """
+        Make a new "badge crop" out of the existing portrait image.
+        """
+        user = self.get_object()
+        if (request.user.username != user.username and
+                not user.is_sudo_user(request)):
+            return Response('Forbidden', status=403)
+        crop = tuple(max(0, int(request.DATA[k]))
+                for k in ('left', 'top', 'right', 'bottom'))
+
+        now = datetime.now(pytz.utc)
+        now_local = now.astimezone(pytz.timezone("Europe/Helsinki"))
+        now_str = now_local.strftime('%Y%m%d%H%M%S')
+
+        badge = Image.open(user.portrait_full_file).crop(crop)
+        badge_file_name = '{}{}_{}_{}_{}_{}.png'.format(user.username, now_str,
+                *crop)
+        badge_file_path = os.path.join(settings.PORTRAIT_BADGE_FOLDER,
+                badge_file_name)
+        with open(badge_file_path, 'wb') as badge_file:
+            badge.save(badge_file, 'PNG')
+        user.portrait_badge_name = badge_file_name
+
+        try:
+            user.save()
+        except Exception, e:
+            os.remove(badge_file_path)
+            return Response("Error saving the user data", status=500)
+
+        ret = {
+            'badge': '{}{}'.format(settings.PORTRAIT_BADGE_URL,
+                badge_file_name),
+        }
+        return Response(json.dumps(ret), status=status.HTTP_200_OK)
 
     @action(methods=['get','post','patch'])
     def status(self, request, username=None):
@@ -497,6 +550,7 @@ def userphoto(request, username, size='thumb'):
         SIZES = {
             'thumb': u.portrait_thumb_url,
             'full': u.portrait_full_url,
+            'badge': u.portrait_badge_url,
         }
         url = SIZES.get(size, u.portrait_thumb_url)
         if not url:

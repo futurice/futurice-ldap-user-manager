@@ -39,7 +39,7 @@ apt-get install build-essential python-setuptools python-dev libldap2-dev libsas
 pip install -r requirements.txt
 npm install
 
-mkdir -p media/portraits/full media/portraits/thumb
+mkdir -p media/portraits/full media/portraits/thumb media/portraits/badge
 
 # Edit LDAP configuration.
 createdb fum	# If using PostgreSQL

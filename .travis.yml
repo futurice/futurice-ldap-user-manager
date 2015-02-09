@@ -21,7 +21,7 @@ install:
   - npm install
   - pip install -r requirements.txt
 
-  - mkdir -p media/portraits/full media/portraits/thumb
+  - mkdir -p media/portraits/full media/portraits/thumb media/portraits/badge
   - psql -c 'create database fum;' -U postgres
   - cp local_settings.py.template local_settings.py
   - sed -i local_settings.py

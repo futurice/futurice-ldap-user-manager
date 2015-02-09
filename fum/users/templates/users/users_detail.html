@@ -8,10 +8,168 @@
 
 <h3 class="user-header">{{ object.first_name}} {{object.last_name}} ({{object.username}})
 </h3>
-{% if sudo %}
+{% if sudo or object.username == request.META.REMOTE_USER %}
 <div class="badge-button">
+  {% if object.portrait_full_name %}
+    {% comment %}
+      Only show the button for editing the badge crop if the user has a photo.
+    {% endcomment %}
+    <a href="" role="button" class="btn btn-info"
+        onclick="showCurrentBadgeCrop(event)"
+        title="View or edit the Badge photo crop">
+        <span class="icon-user icon-white"></span>
+    </a>
+  {% endif %}
+  {% if sudo %}
     <a href="{{settings.BADGE_URL}}{{object}}" target="_blank" role="button" class="btn btn-info" data-toggle="modal">Create badge</a>
+  {% endif %}
 </div>
+
+<script type="text/javascript">
+  function showCurrentBadgeCrop(ev) {
+    ev.preventDefault();
+    $.ajax({
+      url: '{% url "users-detail" object.username %}',
+      error: function() {
+        alert('Error getting badge url');
+      },
+      success: function(data) {
+        $('#badge-view').attr('src', data.portrait_badge_url);
+        $('#badge-modal-view').modal('show');
+      }
+    });
+  }
+
+  var badgeEditW, badgeEditH, badgeIAS, badgeIASSelection,
+      // the coordinates submitted when making a new badge crop
+      badgeCropX1, badgeCropY1, badgeCropX2, badgeCropY2;
+
+  function showNewBadgeCrop(ev) {
+    ev.preventDefault();
+    $.ajax({
+      url: '{% url "users-detail" object.username %}',
+      error: function() {
+        alert('Error getting photo url');
+      },
+      success: function(data) {
+        $('#badge-edit').attr('src', data.portrait_full_url);
+
+        badgeIASSelection = {
+        };
+        var parts = data.portrait_badge_url.split('_');
+        if (parts.length >= 4) {
+          parts.splice(0, parts.length - 4);
+          ['x1', 'y1', 'x2', 'y2'].forEach(function(name, idx) {
+            badgeIASSelection[name] = parseInt(parts[idx], 10);
+          });
+        }
+      }
+    });
+  }
+
+  function submitNewBadgeCrop() {
+    $.ajax({
+      url: '{% url "users-badgecrop" object.username %}',
+      type: 'post',
+      data: {
+        left: badgeCropX1,
+        right: badgeCropX2,
+        top: badgeCropY1,
+        bottom: badgeCropY2
+      },
+      error: function() {
+        alert('Error saving new badge crop');
+      },
+      success: function(data) {
+        $('#badge-modal-edit').modal('hide');
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    /* The modal dialog for viewing the badge crop.
+       Show the photo size on load, erase it when closing the dialog. */
+    $('#badge-view').load(function() {
+      $('#badge-view-dimensions').text('(' + this.width + 'x' +
+          this.height + ')');
+    });
+
+    $('#badge-modal-view').on('hide', function() {
+      // force the img's load() to fire next time we set the 'src'
+      $('#badge-view').attr('src', '');
+      $('#badge-view-dimensions').text('');
+    });
+
+
+    /* The dialog for editing the badge crop.
+       Show the dialog when the full photo loads.
+       Set the previous crop selection.
+       Clean up when hiding the dialog.
+       */
+    $('#badge-edit').load(function() {
+      badgeEditW = this.width;
+      badgeEditH = this.height;
+      $('#badge-edit-dimensions').text('(' + badgeEditW + 'x' +
+          badgeEditH + ')');
+
+      $('#badge-modal-edit').modal('show');
+    });
+
+    $('#badge-modal-edit').on('shown.bs.modal', function (e) {
+      var displayWidth = document.getElementById('badge-edit').width,
+          displayHeight = document.getElementById('badge-edit').height;
+      var scale = badgeEditW / displayWidth;
+
+      function updateCropInfo(img, selection) {
+          $("#badge-crop-info").text("(" +
+              Math.round(selection.width * scale) + "x" +
+              Math.round(selection.height * scale) + ")");
+
+          badgeCropX1 = Math.round(selection.x1 * scale);
+          badgeCropY1 = Math.round(selection.y1 * scale);
+          badgeCropX2 = Math.round(selection.x2 * scale);
+          badgeCropY2 = Math.round(selection.y2 * scale);
+      }
+
+      badgeIAS = $('#badge-edit').imgAreaSelect({
+        aspectRatio: '2:3',
+        handles: true,
+        instance: true,
+        show: true,
+        onSelectChange: updateCropInfo
+      });
+
+      if ('x1' in badgeIASSelection) {
+        ['x1', 'y1', 'x2', 'y2'].forEach(function(k) {
+          badgeIASSelection[k] = Math.round(badgeIASSelection[k]/scale);
+        });
+      } else {
+        badgeIASSelection.x1 = 0;
+        badgeIASSelection.x2 = 0;
+        badgeIASSelection.y1 = 75;
+        badgeIASSelection.y2 = 100;
+      }
+      badgeIASSelection.y2 = Math.min(badgeIASSelection.y2, displayHeight - 1);
+
+      badgeIAS.setSelection(badgeIASSelection.x1, badgeIASSelection.y1,
+          badgeIASSelection.x2, badgeIASSelection.y2);
+      badgeIAS.update();
+
+      updateCropInfo(null, badgeIAS.getSelection());
+    });
+
+    $('#badge-modal-edit').on('hide', function () {
+      // force the img's load event to fire next time we show the dialog
+      $('#badge-edit').attr('src', '');
+
+      $('#badge-edit').imgAreaSelect({
+        remove: true
+      });
+      $('#badge-edit-dimensions').text('');
+      $('#badge-crop-info').text('');
+    });
+  });
+</script>
 {% endif %}
 <div class="clear"></div>
 
@@ -53,6 +211,37 @@
     <a href="https://confluence.futurice.com/display/usup/Personal+ID+badge" target="_blank">What kind of picture can be used?</a>
     <a href="#" class="btn" data-dismiss="modal" id="portrait-cancel">Cancel</a>
     <a href="#" class="btn btn-primary" data-url="{% url "users-portrait" object.username %}" id="portrait-save">Save</a>
+  </div>
+</div>
+
+<div class="modal hide fade" id="badge-modal-view">
+  <div class="modal-header">
+    <h3>Current badge crop <span id="badge-view-dimensions"></span></h3>
+  </div>
+  <div class="modal-body">
+    <img id="badge-view" src=""></img>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">This is OK</a>
+    <a href="#" class="btn btn-primary" data-dismiss="modal"
+      onclick="showNewBadgeCrop(event)">
+      Make a New Crop
+    </a>
+  </div>
+</div>
+
+<div class="modal hide fade" id="badge-modal-edit">
+  <div class="modal-header">
+    <h3>Crop the photo for the badge
+      <span id="badge-edit-dimensions"></span></h3>
+  </div>
+  <div class="modal-body">
+    <img id="badge-edit" src=""></img>
+  </div>
+  <div class="modal-footer">
+    <span id="badge-crop-info"></span>
+    <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+    <a href="#" class="btn btn-primary" onclick="submitNewBadgeCrop()">Save</a>
   </div>
 </div>
 

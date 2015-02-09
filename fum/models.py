@@ -436,6 +436,7 @@ class Users(LDAPGroupModel):
     shadow_last_change = models.IntegerField(default=shadow_initial,null=True, blank=True,editable=False) # last time password was changed, in days since EPOCH
     shadow_max = models.IntegerField(default=calculate_password_valid_days,null=True, blank=True,editable=False) # how many days the password is valid
     portrait_thumb_name = models.CharField(max_length=500, null=True, blank=True)
+    portrait_badge_name = models.CharField(max_length=500, null=True, blank=True)
     portrait_full_name = models.CharField(max_length=500, null=True, blank=True)
     home_directory = models.CharField(max_length=300, null=True, blank=True)
     created = models.DateTimeField(null=True, blank=True, default=now)
@@ -536,6 +537,18 @@ class Users(LDAPGroupModel):
         if not self.portrait_thumb_name:
             return self.default_thumb_url()
         return "{0}{1}{2}".format(settings.API_URL, settings.PORTRAIT_THUMB_URL, self.portrait_thumb_name)
+
+    @property
+    def portrait_badge_file(self):
+        return os.path.join(settings.PORTRAIT_BADGE_FOLDER,
+                self.portrait_badge_name)
+
+    @property
+    def portrait_badge_url(self):
+        if not self.portrait_badge_name:
+            return self.default_thumb_url()
+        return '{0}{1}{2}'.format(settings.API_URL,
+                settings.PORTRAIT_BADGE_URL, self.portrait_badge_name)
 
     def default_thumb_url(self):
         return '{0}/static/img/default_portrait.jpeg'.format(settings.API_URL)

@@ -86,6 +86,7 @@ class UsersSerializer(GenericRelationModelManager):
     email_aliases = serializers.Field(source='email_aliases')
     portrait_full_url= serializers.Field(source='portrait_full_url')
     portrait_thumb_url= serializers.Field(source='portrait_thumb_url')
+    portrait_badge_url = serializers.Field(source='portrait_badge_url')
     suspended_date = serializers.DateField(format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False)
     password_expiration_date = serializers.Field(source='password_expires_date')
     password_changed_date = serializers.Field(source='password_changed_date')
@@ -94,13 +95,14 @@ class UsersSerializer(GenericRelationModelManager):
     class Meta:
         model = Users
         fields = ('id','first_name', 'last_name', 'username', 'title', 'phone1', 'phone2', 'email', 'skype',
-                'physical_office', 'google_status', 'email_aliases', 'portrait_full_url', 'portrait_thumb_url',
+                'physical_office', 'google_status', 'email_aliases', 'portrait_full_url', 'portrait_thumb_url', 'portrait_badge_url',
                 'home_directory', 'suspended_date', 'supervisor', 'hr_number','password_expiration_date',
                 'active_in_planmill','password_changed_date','status',)
 
 class UsersListSerializer(GenericRelationModelManager):
     portrait_full_url= serializers.Field(source='portrait_full_url')
     portrait_thumb_url= serializers.Field(source='portrait_thumb_url')
+    portrait_badge_url = serializers.Field(source='portrait_badge_url')
     suspended_date = serializers.DateField(format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False)
     password_expiration_date = serializers.Field(source='password_expires_date')
     password_changed_date = serializers.Field(source='password_changed_date')
@@ -111,7 +113,8 @@ class UsersListSerializer(GenericRelationModelManager):
         model = Users
         fields = ('id', 'first_name', 'last_name', 'username', 'physical_office', 'email','suspended_date',
                 'hr_number','password_expiration_date','active_in_planmill','password_changed_date',
-                'portrait_thumb_url','portrait_full_url','status',)
+                'portrait_thumb_url','portrait_full_url','portrait_badge_url',
+                'status',)
 
 class PaginatedUsersSerializer(pagination.PaginationSerializer):
     class Meta:

@@ -10,7 +10,7 @@ createdb fum
 # To run ‘datamigrate’ at provision-*.sh time, we need these commands
 # which also run at always-*.sh time.
 cd /vagrant
-mkdir -p media/portraits/full media/portraits/thumb
+mkdir -p media/portraits/full media/portraits/thumb media/portraits/badge
 python manage.py test --settings=fum.settings.test
 ./manage.py migrate --noinput
 

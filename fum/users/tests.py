@@ -1,6 +1,7 @@
 # encoding=utf8
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.utils.timezone import now
@@ -14,6 +15,7 @@ import ldap
 import datetime, copy
 from fum.ldap_helpers import test_user_ldap
 from pprint import pprint as pp
+from rest_framework import status
 from mock import patch, MagicMock, PropertyMock
 from dateutil.relativedelta import relativedelta
 
@@ -241,6 +243,62 @@ class UserTest(LdapTransactionSuite):
                 })
             rs = json.loads(json.loads(response.content))
             self.assertTrue(rs['full'])
+
+    def test_badge_crop_permissions(self):
+        """
+        Users can only change their own photo crop. Sudoers can chage others'.
+        """
+        # upload a portrait first, to be able to crop it for the badge
+        with open('%s/fum/users/sample/futucare.png'%settings.PROJECT_ROOT) as fp:
+            portrait = 'data:image/png;base64,'+base64.b64encode(fp.read())
+            response = self.client.post("/api/users/%s/portrait/"%self.user.username, data={
+                "portrait":portrait,
+                "left":444,
+                "top":0,
+                "right":570,
+                "bottom":189,
+                })
+            rs = json.loads(json.loads(response.content))
+            self.assertTrue(rs['full'])
+        # end portrait upload: copied from test_upload_portrait()
+
+        def get_url(user=None):
+            user = user or self.user
+            return reverse('users-badgecrop', args=[user.username])
+
+        url = get_url()
+        payload = {'top': 0, 'left': 0, 'right': 20, 'bottom': 20}
+
+        resp = self.client.post(url, payload, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        pw = random_ldap_password()
+        other_dj_user, other_user = self.create_user('test_perm_user',
+                password=pw)
+        self.assertTrue(self.client.login(username=other_user.username,
+            password=pw))
+
+        # normal users can't change other users' badge crop
+
+        resp = self.client.post(url, payload, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+        # superusers can change others' badge crop
+
+        # add to TeamIT
+        g = self.save_safe(Groups,
+                kw=dict(name=settings.IT_TEAM),
+                lookup=dict(name=settings.IT_TEAM))
+        try:
+            g.users.add(other_user)
+        except ldap.TYPE_OR_VALUE_EXISTS, e: # live LDAP not cleaned
+            pass
+        response = self.client.post('/sudo/', {'password': pw},
+                HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        resp = self.client.post(url, payload, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_user_m2m_groups(self):
         u = self.save_safe(Users,

@@ -160,6 +160,15 @@ a.status-suspended {
   float: left;
 }
 
+/* ensure the badge cropping dialogs are tall enough, else a tall (portrait)
+   full image or badge crop scrolls inside a smaller dialog box. */
+div#badge-modal-view > div.modal-body {
+  max-height: none;
+}
+div#badge-modal-edit > div.modal-body {
+  max-height: none;
+}
+
 /* Portrait stuff ends
  * ###################
  */
