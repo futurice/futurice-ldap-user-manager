@@ -50,6 +50,8 @@ MEDIA_URL = '/media/'
 # Location of users' portrait pictures
 PORTRAIT_THUMB_FOLDER = '%sportraits/thumb/' % MEDIA_ROOT
 PORTRAIT_THUMB_URL = '%sportraits/thumb/' % MEDIA_URL
+PORTRAIT_BADGE_FOLDER = os.path.join(MEDIA_ROOT, 'portraits/badge/')
+PORTRAIT_BADGE_URL = '{}portraits/badge/'.format(MEDIA_URL)
 PORTRAIT_FULL_FOLDER = '%sportraits/full/' % MEDIA_ROOT
 PORTRAIT_FULL_URL = '%sportraits/full/' % MEDIA_URL
 
