@@ -13,6 +13,8 @@ from django.db.models import Q
 from haystack.query import SearchQuerySet
 from haystack.inputs import Raw
 
+from rest_framework import status
+
 from datetime import datetime, timedelta
 import pysolr
 import json
@@ -71,12 +73,15 @@ def enable_superuser(request):
 
         # Check if not valid
         timeout = request.session.get('sudo_timeout', None)
-        if timeout is None or timeout < now:
-            if timeout is not None:
-                request.session.pop('sudo_timeout')
-                if timeout < now:
-                    response['desc'] = 'Sudoer timeout, please refresh.'
-                    return HttpResponse(json.dumps(response), status=401, content_type='application/json')
+
+        if timeout is not None and timeout < now:
+            request.session.pop('sudo_timeout')
+            response['desc'] = 'Sudoer timeout, please refresh.'
+            return HttpResponse(json.dumps(response),
+                    status=status.HTTP_401_UNAUTHORIZED,
+                    content_type='application/json')
+
+        if timeout is None:
             try:
                 password = request.REQUEST['password']
             except KeyError: 
@@ -84,7 +89,7 @@ def enable_superuser(request):
                 return HttpResponse(json.dumps(response), status=400, content_type='application/json')
         
             user = Users.objects.get(username=request.user.username)
-            if not (user.is_in_teamit() and test_user_ldap(user.username, password, user.ldap.connection)):
+            if not (user.is_in_teamit() and test_user_ldap(user.username, password)):
                 response['desc'] = 'Incorrect password or unauthorized user.'
                 return HttpResponse(json.dumps(response), status=401, content_type='application/json')
 
@@ -94,7 +99,11 @@ def enable_superuser(request):
         # Hack to avoid timezone problems
         response['desc'] = (endtime+(datetime.now()-datetime.utcnow())).strftime('%s')
         return HttpResponse(json.dumps(response), status=200, content_type='application/json')
-            
+
+    return HttpResponse('Not passing Django HTTPRequest.is_ajax() check, ' +
+            'i.e. HTTP_X_REQUESTED_WITH XMLHttpRequest',
+            status=status.HTTP_400_BAD_REQUEST)
+
 def end_superuser(request):
     if request.is_ajax():
         response = {}

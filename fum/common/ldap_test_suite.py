@@ -101,7 +101,7 @@ class LdapFunctionality(object):
         self.client = Client()
         self.client.login(username=self.USERNAME, password=self.PASSWORD)
 
-        self.assertTrue(test_user_ldap(self.USERNAME, self.PASSWORD, connection=self.ldap.connection))
+        self.assertTrue(test_user_ldap(self.USERNAME, self.PASSWORD))
 
     def tearDown(self):
         self.client.logout()

@@ -44,19 +44,18 @@ def fetch(self, dn, filters='', attrs=[], scope=ldap.SCOPE_BASE, connection=None
 
     return result
 
-def test_user_ldap(username, password, connection=None):
+def test_user_ldap(username, password):
     '''
     Test that user has access to ldap with given credentials.
     Returns true or false
     '''
     from fum.models import Users
-    if len(username)>0 and len(password)>0:
+    if username and password:
         user = Users.objects.get(username=username)
         try:
-            if connection is None:
-                user.ldap._connection = LDAPBridge(parent=user, BIND_DN=user.get_dn(), BIND_PASSWORD=password).connection
-            else:
-                user.ldap._connection = connection
+            # throws an exception if the password is incorrect
+            LDAPBridge(parent=user, BIND_DN=user.get_dn(),
+                    BIND_PASSWORD=password).connection
             return True
         except Exception, e:
             print "ERROR#helpers: %s, %s"%(username,e)
