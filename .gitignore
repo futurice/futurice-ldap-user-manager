@@ -12,6 +12,7 @@ lastrun
 node_modules/
 build/
 venv/
+env/
 /env/
 media/
 dist/
