@@ -177,7 +177,7 @@ def injection():
 
 def ldap_save(sender, instance, created, **kwargs):
     injection()
-    changes = copy.deepcopy(instance.changes_copy)
+    changes = dict(instance.changes_copy)
     changes.update(instance.get_changes('ldap'))
 
     if created:
