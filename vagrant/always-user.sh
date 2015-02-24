@@ -10,7 +10,7 @@ cd /vagrant
 npm install
 
 mkdir -p media/portraits/full media/portraits/thumb media/portraits/badge
-python ./manage.py test --settings=fum.settings.test
+python manage.py test --settings=fum.settings.test --noinput fum
 
 ./manage.py migrate --noinput
 ./manage.py collectstatic --noinput
