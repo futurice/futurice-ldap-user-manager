@@ -30,4 +30,4 @@ install:
     -e "s/Company/Futurice/g"
     -e 's/example\.com/futurice.com/g'
 
-script: python manage.py test --settings=fum.settings.test --noinput
+script: python manage.py test --settings=fum.settings.test --noinput fum
