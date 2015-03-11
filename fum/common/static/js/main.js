@@ -276,8 +276,8 @@ $(document).ready(function(){
                     type: 'POST',
                     data: JSON.stringify({items: [alias]}),
                     contentType: 'application/json',
-                    error: function(){
-                        fumErrors.set('aliasnotset', 'Unable to add alias.', 'error');
+                    error: function(data){
+                        fumErrors.set('aliasnotset', 'Unable to add alias: '+data.responseText, 'error');
                         input.addClass('fail');
                     },
                     success: function(data){updateAliases(data);input.removeClass('fail')}
@@ -362,7 +362,7 @@ fumErrors = {
         $(this.items).each(function(){
             errors.append("<p class='alert alert-"+this.type+"'>"+this.text+"</p>");
         });
-
+        document.body.scrollTop = document.documentElement.scrollTop = 0;
     }
 };
 

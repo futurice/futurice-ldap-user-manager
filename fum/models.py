@@ -790,7 +790,11 @@ class EMails(Mother):
         unique_together = ('content_type', 'object_id') # OneToOne emulation for GenericForeignKey
 
 class EMailAliases(Mother):
-    """ REMINDER: NOT AN LDAP MODEL """
+    """ REMINDER: NOT AN LDAP MODEL
+
+    Aliases are forwarding addresses that should be unique.
+    For forwarding a Group email, add a User to it, not an email address.
+    """
     address = models.EmailField(max_length=254, unique=True)
     parent = models.ForeignKey(EMails)
 
@@ -809,14 +813,9 @@ class EMailAliases(Mother):
         if EMailAliases.objects.filter(address=self.address):
             raise ValidationError('Alias already in use')
 
-        try:
-            existing_email = EMails.objects.get(address=self.address)
-            if existing_email.address == self.address:
-                pass # alias can be same as primary
-            else:
-                raise ValidationError('Alias conflicts with an existing Email address')
-        except:
-            pass
+        existing_email = EMails.objects.filter(address=self.address).first()
+        if existing_email and existing_email.address.strip() == self.address.strip():
+            raise ValidationError('Alias conflicts with an existing Email address')
 
         super(EMailAliases, self).clean()
 
@@ -829,7 +828,7 @@ class EMailAliases(Mother):
             # After super.save() no failures allowed.
             self.parent.content_object.ldap.save_relation(parent=self.parent.content_object, child=u'%s'%self.address, field=self)
         except Exception, e:
-            print "EMailAliases", e
+            pass
         return ret
 
 class Resource(Mother):
