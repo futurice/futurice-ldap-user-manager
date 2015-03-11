@@ -15,6 +15,7 @@ from rest_framework.pagination import PaginationSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
+from rest_framework import serializers as drf_serializers
 
 from serializers import *
 
@@ -105,11 +106,17 @@ def mod_users(request, group_members, relname=None):
         
         if request.method == 'POST':
             for user in users:
-                group_members.add(user)
+                try:
+                    group_members.add(user)
+                except ValidationError as e:
+                    return Response(e.messages, status=403)
 
         elif request.method == 'DELETE':
             for user in users:
-                group_members.remove(user)
+                try:
+                    group_members.remove(user)
+                except ValidationError as e:
+                    return Response(e.messages, status=403)
     
     json_users = []
     for user in group_members.all().values().order_by():
@@ -215,6 +222,8 @@ class LDAPViewSet(viewsets.ModelViewSet):
                 for alias in items:
                     try:
                         a = EMailAliases.objects.get(address=alias, parent=email).delete()
+                    except ValidationError:
+                        return Response(e.messages, status=403)
                     except KeyError: 
                         pass # TODO: Error message or just return current aliases?
 
@@ -223,8 +232,7 @@ class LDAPViewSet(viewsets.ModelViewSet):
                     try:
                         a = EMailAliases.objects.create(address=alias, parent=email)
                     except Exception, e:
-                        print e
-                        return Response(aliases, status=400)
+                        return Response(e.messages, status=400)
                 
         
         if email:

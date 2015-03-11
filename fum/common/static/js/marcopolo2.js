@@ -16,7 +16,11 @@ function marcopoloField2(el, opt){
   }
 
   function showError(data){
-    fumErrors.set('marcopolo', data, 'error');
+    var err = data;
+    if (err.responseText) {
+      err = err.responseText;
+    };
+    fumErrors.set('marcopolo', err, 'error');
   }
 
   var delicon = '<i class="icon-remove pull-right"></i>';

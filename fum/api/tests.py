@@ -249,10 +249,9 @@ class PermissionTestCase(LdapSuite):
         response = self.client.get("/api/groups/{0}/".format(name))
         self.assertEquals(response.status_code, 200)
 
-        with self.assertRaises(ValidationError):
-            response = self.client.post("/api/groups/{0}/users/".format(name),
-                    {"items": [user.username]})
-            self.assertEquals(response.status_code, 403)
+        response = self.client.post("/api/groups/{0}/users/".format(name),
+                {"items": [user.username]})
+        self.assertEquals(response.status_code, 403)
 
 class TokenPermissionTestCase(LdapSuite):
 
