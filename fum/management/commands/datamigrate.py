@@ -226,7 +226,7 @@ class Command(BaseCommand):
                         if not isEmailAddressValid(proxy):
                             #print "invalid email", proxy
                             continue
-                        if not EMailAliases.objects.filter(address=proxy).count():
+                        if not EMailAliases.objects.filter(address=proxy).count() and not EMails.objects.filter(address=proxy).exists():
                             EMailAliases(address=proxy, parent=email).save()
             elif 'proxyaddress' in v:
                 log.debug("group "+group.name+" doesn't have a primary email, but shill has email aliases... not good!")
