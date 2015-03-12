@@ -16,7 +16,6 @@ from haystack.inputs import Raw
 from rest_framework import status
 
 from datetime import datetime, timedelta
-import pysolr
 import json
 
 from fum.ldap_helpers import test_user_ldap
