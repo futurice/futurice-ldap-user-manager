@@ -29,7 +29,6 @@ from fum.models import (
 
 import datetime, json, sys, copy, os, time
 from pprint import pprint as pp
-import sshpubkeys
 
 from fum.api.changes import changes_save, rest_reverse
 from fum.common.ldap_test_suite import LdapSuite, LdapTransactionSuite, random_ldap_password
@@ -1413,9 +1412,9 @@ class SSHKeyTestCase(LdapTransactionSuite):
         self.assert_ldap_ssh_key_count(0)
         add_url = self.get_addsshkey_url()
         delete_url = self.get_deletesshkey_url()
-        with self.assertRaises(sshpubkeys.InvalidKeyException):
-            self.client.post(add_url,
-                {'title': 'bad key', 'key': 'invalid string'}, format='json')
+        resp = self.client.post(add_url,
+            {'title': 'bad key', 'key': 'invalid string'}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
         resp = self.client.post(add_url,
             {'title': 'my key', 'key': self.valid_ssh_key}, format='json')
@@ -1441,10 +1440,10 @@ class SSHKeyTestCase(LdapTransactionSuite):
             {'title': 'k1', 'key': self.valid_ssh_key}, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-        with self.assertRaises(ValidationError):
-            # key with the same fingerprint
-            resp = self.client.post(url,
-                {'title': 'k2', 'key': self.valid_ssh_key + '2'}, format='json')
+        # key with the same fingerprint
+        resp = self.client.post(url,
+            {'title': 'k2', 'key': self.valid_ssh_key + '2'}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_transaction(self):
         """
