@@ -17,6 +17,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework import serializers as drf_serializers
 
+import sshpubkeys
 from serializers import *
 
 from fum.api.changes import changes_save, changes_delete
@@ -471,9 +472,12 @@ class UsersViewSet(ListMixin, LDAPViewSet):
                     [(ldap.MOD_ADD, 'objectClass', SSHKey.LDAP_OBJCLS)])
 
         with transaction.atomic():
-            ssh_key = SSHKey(user=user, title=request.DATA['title'],
-                    key=request.DATA['key'])
-            ssh_key.save()
+            try:
+                ssh_key = SSHKey(user=user, title=request.DATA['title'],
+                        key=request.DATA['key'])
+                ssh_key.save()
+            except (sshpubkeys.InvalidKeyException, ValidationError) as e:
+                return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
             user.ldap.op_modify(user.get_dn(),
                     [(ldap.MOD_ADD, SSHKey.LDAP_ATTR, str(ssh_key.key))])
 
@@ -490,10 +494,15 @@ class UsersViewSet(ListMixin, LDAPViewSet):
         # LDAP controls SSH access to servers. If there's an error removing a
         # key from LDAP, fail and don't remove it from fum's DB.
 
-        ssh_key = SSHKey.objects.get(fingerprint=request.DATA['fingerprint'])
-        user.ldap.op_modify(user.get_dn(),
-                [(ldap.MOD_DELETE, SSHKey.LDAP_ATTR, str(ssh_key.key))])
-        ssh_key.delete()
+        try:
+            ssh_key = SSHKey.objects.get(
+                    fingerprint=request.DATA['fingerprint'])
+            user.ldap.op_modify(user.get_dn(),
+                    [(ldap.MOD_DELETE, SSHKey.LDAP_ATTR, str(ssh_key.key))])
+            ssh_key.delete()
+        except Exception as e:
+            return Response(str(e),
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         changes_delete(None, ssh_key)
         return Response('', status=200)

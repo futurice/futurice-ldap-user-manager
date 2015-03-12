@@ -30,6 +30,7 @@
 </div>
 
 <script type="text/javascript">
+    var errTypeSSHKey = 'ssh-key';
     function addSSHKey() {
         var userid = {{user.id}},
             title = document.getElementById('ssh-key-title').value,
@@ -47,7 +48,8 @@
                 window.location.reload();
             },
             error: function(data) {
-                alert('Error: ' + data.responseText);
+                fumErrors.set(errTypeSSHKey,
+                    'Add SSH Key: ' + data.responseText, 'error');
             }
         });
     }
@@ -65,7 +67,8 @@
                     window.location.reload();
                 },
                 error: function(data) {
-                    alert('Error: ' + data.responseText);
+                    fumErrors.set(errTypeSSHKey,
+                        'Delete SSH Key: ' + data.responseText, 'error');
                 }
             });
         }
