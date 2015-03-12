@@ -48,6 +48,7 @@
                 window.location.reload();
             },
             error: function(data) {
+                $('#ssh-modal').modal('hide');
                 fumErrors.set(errTypeSSHKey,
                     'Add SSH Key: ' + data.responseText, 'error');
             }
