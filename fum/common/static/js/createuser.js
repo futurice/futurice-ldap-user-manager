@@ -25,7 +25,15 @@ $(document).ready(function(){
   };
   var MIN_LENGTH = 2;
 
+  /* Uniquely identifies the latest ‘updateFields()’ call.
+   * That function schedules asynchronous work (e.g. AJAX callbacks). If a new
+   * ‘updateFields()’ runs, the old callbacks must do nothing.
+   */
+  var updateFieldsToken = new Object();
   function updateFields(){
+    var myTok = new Object();
+    updateFieldsToken = myTok;
+
     var type = primaryGroups[$('#user-type-selector').val()].pre;
     var first = umlaut($('#id_first_name').val());
     var last = umlaut($('#id_last_name').val());
@@ -35,31 +43,46 @@ $(document).ready(function(){
       $('#id_email').val(email).trigger('change');
     }
 
-    var username = type+first.slice(0,1)+last.slice(0,3);
-    username = username.toLowerCase();
-
-    if (username.length<MIN_LENGTH || username.length>=MIN_LENGTH){
-      // username collision
-      $.get(url('users-detail', {username:username}),function(){
-        username = type+first.slice(0,2)+last.slice(0,3);
-        username = username.toLowerCase();
-        $.get(url('users-detail', {username:username}),function(){
-          username = type+first.slice(0,3)+last.slice(0,2);
-          username = username.toLowerCase();
-          $.get(url('users-detail', {username:username}),function(){
-            username = ""
-          });
-        });
-      }).always(function() {
-        $('#id_username').parent().find("p").remove();
-        if(username.length >= MIN_LENGTH){
-          $('#id_username').val(username).removeClass("fail").addClass("ok");
-        } else if(username.length<MIN_LENGTH) {
-          $('#id_username').removeClass("ok").addClass("fail").parent().append('<p class="fail">Username too short (less than '+MIN_LENGTH+' characters)</p>');
-        } else {
-          $('#id_username').removeClass("ok").addClass("fail").parent().append('<p class="fail">Could not generate a free username, try manually.</p>');
+    // pop() usernames until one is available or none are left
+    var usernameOpts = getUsernameOptions().reverse();
+    function getUsernameOptions() {
+        var len = 4, left, right, opts = [], uname;
+        for (left = 1; left < len; left++) {
+            right = len - left;
+            uname = (type + first.slice(0, left) +
+                    last.slice(0, right)).toLowerCase();
+            if (uname.length < MIN_LENGTH) {
+                continue;
+            }
+            opts.push(uname);
         }
-      });
+        return opts;
+    }
+
+    var selector = '#id_username';
+    tryNextUsername();
+    function tryNextUsername() {
+        if (myTok != updateFieldsToken) {
+            return;
+        }
+        if (!usernameOpts.length) {
+            $(selector).parent().find("p").remove();
+            $(selector).val('').removeClass("ok").addClass("fail").parent().append('<p class="fail">Could not generate a free username, try manually.</p>');
+            return;
+        }
+
+        var username = usernameOpts.pop();
+        $.ajax({
+            url: url('users-detail', {username: username}),
+            success: tryNextUsername,
+            error: function() {
+                if (myTok != updateFieldsToken) {
+                    return;
+                }
+                $(selector).parent().find("p").remove();
+                $(selector).val(username).removeClass("fail").addClass("ok");
+            }
+        });
     }
   }
 
@@ -68,6 +91,12 @@ $(document).ready(function(){
   $('#id_first_name').change(updateFields);
   $('#id_last_name').change(updateFields);
   $('#id_username').change(function(){
+    if ($(this).val().length < MIN_LENGTH) {
+      $(this).parent().find("p").remove();
+      $(this).removeClass("ok").addClass("fail").parent().append('<p class="fail">Username too short (less than '+MIN_LENGTH+' characters)</p>');
+      return;
+    }
+
     var that = this;
     $.get(url('users-detail', {username:$(this).val()})).success(function(){
       $(that).removeClass("fail").addClass("ok").parent().find("p").remove();
