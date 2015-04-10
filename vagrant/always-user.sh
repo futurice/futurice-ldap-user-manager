@@ -10,7 +10,20 @@ cd /vagrant
 npm install
 
 mkdir -p media/portraits/full media/portraits/thumb media/portraits/badge
-python manage.py test --settings=fum.settings.test --noinput fum
+
+# The test fum.api.tests.ApiTestCase.test_user fails if run via the vagrant
+# shell provisioner or via ‘vagrant ssh -c 'python manage.py test …'’.
+# self.ldap_val('mail', user) returns [] instead of raising KeyError.
+# The test succeeds if run via:
+# ― ‘vagrant ssh’ followed by ‘python manage.py test …’
+# ― ‘python manage.py test …’ on a dev machine
+# ― .travis.yml
+# Adding a few environment variable (with any name and value) seems to solve
+# the problem.
+#
+# TODO: understand the cause of this.
+Va=a Vb=b Vc=c \
+	python manage.py test --settings=fum.settings.test --noinput fum
 
 ./manage.py migrate --noinput
 ./manage.py collectstatic --noinput
