@@ -9,6 +9,8 @@ sqlite.db
 local_settings.py
 lastrun
 
+.env
+
 node_modules/
 build/
 venv/
