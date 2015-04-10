@@ -43,7 +43,7 @@ pip install -r requirements.txt
 npm install
 cp .env.template .env
 ```
-Configure REMOTE_USER
+Configure REMOTE_USER in .env
 
 Run the project:
 ```
