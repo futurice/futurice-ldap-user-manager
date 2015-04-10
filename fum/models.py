@@ -399,6 +399,7 @@ class Users(LDAPGroupModel):
     phone1 = models.CharField(max_length=100, null=True, blank=True)
     phone2 = models.CharField(max_length=100, null=True, blank=True)
     skype = models.CharField(max_length=100, null=True, blank=True)
+    github = models.CharField(max_length=100, null=False, blank=True)
     physical_office = models.CharField(max_length=100, null=True, blank=True)
     google_status = models.CharField(max_length=255, choices=GOOGLE_STATUS_CHOICES, default=UNDEFINED)
     picture_uploaded_date = models.DateTimeField(null=True, blank=True, editable=False)
@@ -588,7 +589,9 @@ class Users(LDAPGroupModel):
         return (u'%s %s'%(self.first_name or '', self.last_name or '')).strip()
 
     def search_data(self):
-        return u'%s %s %s %s %s %s'%(self.username, self.first_name, self.last_name, self.title, self.phone1, self.phone2,)
+        return u'%s %s %s %s %s %s %s'%(self.username,
+                self.first_name, self.last_name, self.title,
+                self.phone1, self.phone2, self.github)
 
     def is_in_teamit(self):
         try:
