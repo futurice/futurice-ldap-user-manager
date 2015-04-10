@@ -11,18 +11,20 @@ BACKGROUND
 SETUP
 =====
 ```bash
-cp local_settings.py.template local_settings.py
-# set the SECRET_KEY to a random string
+sed local_settings.py.template >local_settings.py \
+    -e "s/^SECRET_KEY =.*$/SECRET_KEY = 'test'/" \
+    -e "s/company/futurice/g" \
+    -e "s/Company/Futurice/g" \
+    -e 's/example\.com/futurice.com/g'
+
 # Fill in the LDAP_CONNECTION fields
-# Change “company” and “Company” (e.g. to “futurice” and “Futurice”) throughout the file
 # set USE_TLS=False if some LDAP connections don't work
-# Change EMAIL_DOMAIN and EMAIL_HOST (e.g. replace example.com with futurice.com)
 # Change IT_TEAM to an existing group you're part of to get SUDO permission
 ```
 
 Run using Vagrant
 =================
-Enter your username in `vagrant/REMOTE_USER`, e.g.:
+Enter your LDAP username in `vagrant/REMOTE_USER`, e.g.:
 ```bash
 echo username >vagrant/REMOTE_USER
 ```
