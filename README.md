@@ -35,12 +35,17 @@ vagrant up
 Develop locally using Procboy
 =============================
 
-Run multiple processes, configured in Procfile, using environment variables configured in .env:
+Procboy runs multiple processes, configured in Procfile, using environment variables configured in .env:
 
+Prepare dependencies and configure variables (preferably in a virtualenv[1]):
 ```
+pip install -r requirements.txt
+npm install
 cp .env.template .env
 ```
-Configure in REMOTE_USER
+Configure REMOTE_USER
+
+Run the project:
 ```
 procboy
 ```
@@ -203,3 +208,13 @@ People who have contributed to FUM:
 SUPPORT
 =======
 Pull requests and new issues are of course welcome. If you have any questions, comments or feedback you can contact us by email at sol@futurice.com. We will try to answer your questions, but we have limited manpower so please, be patient with us.
+
+
+FOOTNOTES
+=========
+[1] [virtualenv](https://virtualenv.pypa.io/en/latest/) installation:
+```
+sudo pip install virtualenv
+mkvirtualenv fum
+source fum/bin/activate
+```
