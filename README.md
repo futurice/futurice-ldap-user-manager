@@ -11,11 +11,11 @@ BACKGROUND
 SETUP
 =====
 ```bash
-sed local_settings.py.template >local_settings.py \
-    -e "s/^SECRET_KEY =.*$/SECRET_KEY = 'test'/" \
+sed -e "s/^SECRET_KEY =.*$/SECRET_KEY = 'test'/" \
     -e "s/company/futurice/g" \
     -e "s/Company/Futurice/g" \
-    -e 's/example\.com/futurice.com/g'
+    -e 's/example\.com/futurice.com/g' \
+    local_settings.py.template >local_settings.py
 
 # Fill in the LDAP_CONNECTION fields
 # set USE_TLS=False if some LDAP connections don't work
