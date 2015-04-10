@@ -11,11 +11,7 @@ createdb fum
 # which also run at always-*.sh time.
 cd /vagrant
 mkdir -p media/portraits/full media/portraits/thumb media/portraits/badge
-
-# see the comment in always-user.sh for the environment variable
-DUMMY_VAR=dummy_val \
-	python manage.py test --settings=fum.settings.test --noinput fum
-
+python manage.py test --settings=fum.settings.test --noinput fum
 ./manage.py migrate --noinput
 
 ./manage.py datamigrate
