@@ -32,6 +32,21 @@ vagrant up
 ```
 [localhost:8000](http://localhost:8000)
 
+Develop locally using Procboy
+=============================
+
+Run multiple processes, configured in Procfile, using environment variables configured in .env:
+
+```
+cp .env.template .env
+```
+Configure in REMOTE_USER
+```
+procboy
+```
+View [localhost:8000](http://localhost:8000)
+
+
 INSTALL
 =======
 
