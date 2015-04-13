@@ -94,7 +94,7 @@ class UsersSerializer(GenericRelationModelManager):
 
     class Meta:
         model = Users
-        fields = ('id','first_name', 'last_name', 'username', 'title', 'phone1', 'phone2', 'email', 'skype',
+        fields = ('id','first_name', 'last_name', 'username', 'title', 'phone1', 'phone2', 'email', 'github', 'skype',
                 'physical_office', 'google_status', 'email_aliases', 'portrait_full_url', 'portrait_thumb_url', 'portrait_badge_url',
                 'home_directory', 'suspended_date', 'supervisor', 'hr_number','password_expiration_date',
                 'active_in_planmill','password_changed_date','status',)
