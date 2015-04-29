@@ -609,6 +609,15 @@ class Users(LDAPGroupModel):
             ret = '+' + ret[2:]
         return ret
 
+    # turns 'https://github.com/TheUser/' into 'TheUser'
+    def clean_github_username(self, value):
+        pref, suf = 'https://github.com/', '/'
+        if value.startswith(pref):
+            value = value[len(pref):]
+        if value.endswith(suf):
+            value = value[:-len(suf)]
+        return value
+
     def clean(self):
         # clean fields
         clean_for_ldap_on_creation = ['username']
@@ -639,6 +648,7 @@ class Users(LDAPGroupModel):
             self.phone1 = self.clean_phone_number(self.phone1)
         if self.phone2:
             self.phone2 = self.clean_phone_number(self.phone2)
+        self.github = self.clean_github_username(self.github)
 
         # Fill homedir if empty
         if not self.home_directory:
