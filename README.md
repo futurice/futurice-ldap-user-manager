@@ -37,15 +37,15 @@ vagrant up
 Develop locally using Procboy
 =============================
 
-Procboy runs multiple processes, configured in Procfile, using environment variables configured in .env:
+Setup, and **configure** processes and environment:
+cp Procfile.template Procfile
+cp env.template .env
 
-Prepare dependencies and configure variables (preferably in a virtualenv[1]):
+Prepare dependencies (preferably in a virtualenv[1]):
 ```
 pip install -r requirements.txt
 npm install
-cp .env.template .env
 ```
-Configure REMOTE_USER in .env
 
 Run the project:
 ```
