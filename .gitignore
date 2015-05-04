@@ -10,6 +10,7 @@ local_settings.py
 lastrun
 
 .env
+Procfile
 
 node_modules/
 build/
