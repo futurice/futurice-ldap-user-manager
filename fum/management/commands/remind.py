@@ -11,6 +11,8 @@ import logging
 import os
 
 from fum.models import Users
+from fum.common.util import random_ldap_password
+
 from django.core.mail import send_mail
 
 log = logging.getLogger(__name__)
@@ -71,10 +73,13 @@ class Command(BaseCommand):
             if user.google_status == user.ACTIVEPERSON:
                 if 'password' in args:
                     body = get_template('emails/password_reminder.txt')
-                    days_left =  (user.password_expires_date - dtnow).days
+                    days_left = (user.password_expires_date - dtnow).days
                     subject = "%s password will expire in %d day%s."%(settings.COMPANY_NAME, days_left, "s" if days_left!=1 else "")
                 
                     if days_left < 0:
+                        user.set_ldap_password(random_ldap_password())
+                        user.expire_password()
+                        user.save()
                         self.send(user, "%s password has expired."%(settings.COMPANY_NAME), get_template('emails/password_expired.txt'), dry)
                     elif days_left <= 7:
                         self.send(user, subject, body, dry)

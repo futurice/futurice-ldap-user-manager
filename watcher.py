@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "fum.settings.base")
 
-BLACKLIST = ['/.git','.git','.log','dist/','logs/','/tests','.db', settings.MEDIA_ROOT.rstrip('/'), settings.STATIC_ROOT.rstrip('/'),]
+BLACKLIST = ['/.git','.pyc','dutils.conf.urls.js','.git','.log','dist/','logs/','/tests','.db', settings.MEDIA_ROOT.rstrip('/'), settings.STATIC_ROOT.rstrip('/'),]
 def blacklisted(path):
     return any(black in path for black in BLACKLIST)
 
@@ -34,7 +34,7 @@ def is_time_to_run_again(interval=2):
 
 class CollectStaticHandler(FileSystemEventHandler):
     def prepare_system(self, event):
-        if not blacklisted(event.src_path):
+        if event.src_path and not blacklisted(event.src_path):
             if not is_time_to_run_again() and 'WARMUP' not in event.src_path:
                 return
             print ":>", event.src_path

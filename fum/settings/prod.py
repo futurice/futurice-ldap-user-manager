@@ -1,4 +1,5 @@
 from base import *
+
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 WSGI_APPLICATION = 'fum.wsgi.prod.application'
