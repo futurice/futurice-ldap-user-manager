@@ -223,7 +223,7 @@ class LDAPViewSet(viewsets.ModelViewSet):
                 for alias in items:
                     try:
                         a = EMailAliases.objects.get(address=alias, parent=email).delete()
-                    except ValidationError:
+                    except ValidationError as e:
                         return Response(e.messages, status=403)
                     except KeyError: 
                         pass # TODO: Error message or just return current aliases?
