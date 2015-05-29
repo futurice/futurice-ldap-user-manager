@@ -45,8 +45,8 @@ def send_mail(subject, message, from_email, recipient_list, fail_silently=False)
 
 def random_ldap_password(size=12, types=None):
     """ An LDAP password is a combination of lowercase, uppercase, digits, and special characters with characters from atleast three groups present """
-    lower = ''.join([x for x in string.lowercase if x not in {'i', 'l', 'o'}])
-    upper = ''.join([x for x in string.uppercase if x not in {'I', 'O'}])
+    lower = filter(lambda x: x not in 'ilo', string.lowercase)
+    upper = filter(lambda x: x not in 'IO', string.uppercase)
     types = types or [lower, upper, '23456789', '#./+-_&"%']
     bucket_size = size/len(types)
     buckets = len(types)*[bucket_size]
