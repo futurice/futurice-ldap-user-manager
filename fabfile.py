@@ -12,7 +12,6 @@ env.local_python_packages_dir = os.path.join(env.local_project_root, 'dist')
 env.project = 'fum'
 env.deploy_group = 'Users' # deploy users must belong to this group
 env.www_root = '/srv/www'
-env.user = os.environ['USER']
 env.owner = 'www-data'
 env.release = '%s_%s' % (env.project, time.strftime('%Y%m%d%H%M%S'))
 env.pkg = '/tmp/{release}.tar.gz'.format(**env)
