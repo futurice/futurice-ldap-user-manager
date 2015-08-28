@@ -34,6 +34,40 @@ class Command(BaseCommand):
                 matches.append(k)
         return matches
 
+    def sync(self, matches):
+        for instance, fields in matches.iteritems():
+            for field in fields:
+                curval = getattr(instance, field)
+                l = instance.ldap
+                mlist = l.get_modify_modlist(l.as_ldap_value(field, curval), force_update=True)
+                l.op_modify(l.dn, mlist)
+
+    def deep(self, queryset, exclude=[]):
+        M = {'matches':{},'exclusions':{}}
+        def compare(instance,dbval,ldap,ldapval):
+            lval = ldap.get(ldapval, [''])
+            ival = getattr(instance, mf)
+            ival = unicode(ival).encode('utf-8') if (ival is not None) else ''
+            return ival==lval[0]
+        def store(instance, key):
+            slot = 'matches'
+            if key in exclude:
+                slot = 'exclusions'
+            M[slot].setdefault(instance, [])
+            M[slot][instance].append(key)
+
+        for instance in queryset:
+            ul = instance.lval()
+            for mf,lf in instance.ldap_fields.iteritems():
+                if isinstance(lf, list):
+                    for ldap_attr in lf:
+                        if not compare(instance, mf, ul, ldap_attr):
+                            store(instance, mf)
+                else:
+                    if not compare(instance, mf, ul, lf):
+                        store(instance, mf)
+        return M
+
     def roam(self, results, key):
         print "----------------------"
         duplicate = []
@@ -106,16 +140,16 @@ class Command(BaseCommand):
         # gidNumber = 2000 for all, uidNumber is unique
         results = u.ldap.fetch(u.ldap_base_dn, scope=ldap.SCOPE_SUBTREE, filters=u.ldap_filter, attrs=['gidNumber','uidNumber'])
         rs = self.roam(results, 'uidNumber')
-        gids[u] = rs
-        missing['ldap-fum'][u] = self.exists_in_db(results, field='username')
+        gids[Users] = rs
+        missing['ldap-fum'][Users] = self.exists_in_db(results, field='username')
 
         for o in [Groups]: # Groups holds ou=Hosts, ou=Projects within
             print o
             u = o()
             results = u.ldap.fetch(u.ldap_base_dn, scope=ldap.SCOPE_SUBTREE, filters=u.ldap_filter, attrs=['gidNumber'])
             rs = self.roam(results, 'gidNumber')
-            gids[u] = rs
-            missing['ldap-fum'][u] = self.exists_in_db(results, field='name')
+            gids[o] = rs
+            missing['ldap-fum'][o] = self.exists_in_db(results, field='name')
         pp(gids)
 
         print "========================="

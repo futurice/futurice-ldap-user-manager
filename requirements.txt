@@ -28,5 +28,5 @@ django_js_utils_ng==0.5.futu
 django-history==0.2.2
 mockldap-fork==0.1.6
 slumber-fork==0.6.3
-raven==5.1.1
+raven==5.3.1
 procboy==0.1.4
