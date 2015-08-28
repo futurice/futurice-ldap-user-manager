@@ -322,6 +322,7 @@ class SSHKey(models.Model):
         return self.fingerprint
 
     def save(self, *args, **kwargs):
+        self.key = self.key.strip() if self.key else self.key
         k = sshpubkeys.SSHKey(self.key)
         self.bits = k.bits
         self.fingerprint = k.hash()
