@@ -21,7 +21,7 @@ class QueryFieldsMixin(object):
     def get_fields(self, *args, **kwargs):
         fields = super(QueryFieldsMixin, self).get_fields(*args, **kwargs)
         request = get_current_request()
-        if request.GET.get('fields'):
+        if request and request.GET.get('fields'):
             fields = {k:v for k,v in fields.iteritems() if k in request.GET.get('fields')} or fields
         return fields
 

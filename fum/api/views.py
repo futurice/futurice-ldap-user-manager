@@ -584,7 +584,9 @@ def list_employees(request):
         for group in groups:
             for user in group.users.all():
                 if user.active_in_planmill:
-                    rs.append(UsersSerializer(user).data)
+                    user_data = UsersSerializer(user).data
+                    if not filter(lambda x: x['id']==user_data['id'], rs):
+                        rs.append(user_data)
         data = JSONRenderer().render(rs)
         cache.set(KEY, data, 1800)
     return HttpResponse(data, content_type='application/json')
