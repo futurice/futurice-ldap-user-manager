@@ -293,12 +293,6 @@
         {% include "common/xeditable.html" with field="planmill_uid" full="PlanMill UID" api=adetail %}
 	</tr>
 
-  {% if sudo or object.username == request.user.username %}
-	<tr>
-        {% include "common/xeditable.html" with field="planmill_apikey" full="PlanMill API Key" api=adetail %}
-	</tr>
-  {% endif %}
-
 	<tr>
         {% include "common/xeditable.html" with field="skype" full="Skype" api=adetail %}
 	</tr>

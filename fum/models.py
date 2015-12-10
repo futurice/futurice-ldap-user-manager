@@ -416,7 +416,6 @@ class Users(LDAPGroupModel):
     hr_number = models.CharField(max_length=255, null=True, blank=True)
     active_in_planmill = models.IntegerField(default=PLANMILL_DISABLED, choices=ACTIVE_IN_PLANMILL_CHOICES)
     flowdock_uid = models.IntegerField(null=True, blank=True)
-    planmill_apikey = models.CharField(max_length=255, null=True, blank=True)
     planmill_uid = models.PositiveIntegerField(null=True, blank=True)
     # FK
     supervisor = models.ForeignKey('self', null=True, blank=True)
@@ -622,9 +621,6 @@ class Users(LDAPGroupModel):
             value = value[:-len(suf)]
         return value
 
-    def clean_planmill_apikey(self, value):
-        return value.strip() if value else value
-
     def clean(self):
         # clean fields
         clean_for_ldap_on_creation = ['username']
@@ -656,9 +652,6 @@ class Users(LDAPGroupModel):
         if self.phone2:
             self.phone2 = self.clean_phone_number(self.phone2)
         self.github = self.clean_github_username(self.github)
-
-        # planmill
-        self.planmill_apikey = self.clean_planmill_apikey(self.planmill_apikey)
 
         # Fill homedir if empty
         if not self.home_directory:

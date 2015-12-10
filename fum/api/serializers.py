@@ -97,7 +97,7 @@ class UsersSerializer(GenericRelationModelManager):
         fields = ('id','first_name', 'last_name', 'username', 'title', 'phone1', 'phone2', 'email', 'github', 'skype',
                 'physical_office', 'google_status', 'email_aliases', 'portrait_full_url', 'portrait_thumb_url', 'portrait_badge_url',
                 'home_directory', 'suspended_date', 'supervisor', 'hr_number','password_expiration_date',
-                'active_in_planmill','password_changed_date','status','flowdock_uid','planmill_uid','planmill_apikey',)
+                'active_in_planmill','password_changed_date','status','flowdock_uid','planmill_uid',)
 
 class UsersListSerializer(GenericRelationModelManager):
     portrait_full_url= serializers.Field(source='portrait_full_url')
@@ -114,7 +114,7 @@ class UsersListSerializer(GenericRelationModelManager):
         fields = ('id', 'first_name', 'last_name', 'username', 'physical_office', 'email','suspended_date',
                 'hr_number','password_expiration_date','active_in_planmill','password_changed_date',
                 'portrait_thumb_url','portrait_full_url','portrait_badge_url',
-                'status','flowdock_uid','planmill_uid','planmill_apikey',)
+                'status','flowdock_uid','planmill_uid',)
 
 class PaginatedUsersSerializer(pagination.PaginationSerializer):
     class Meta:
