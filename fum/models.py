@@ -365,6 +365,8 @@ class Users(LDAPGroupModel):
         (PLANMILL_ACTIVE, 'Active'),
         (PLANMILL_INACTIVE, 'Inactive'))
 
+    RE_USERNAME = r'^[a-zA-Z0-9_]+$'
+
     def status_choices_xeditable(self):
          return [{'value': Users.USER_ACTIVE, 'text': 'Active'},
                  {'value': Users.USER_DISABLED, 'text': 'Disabled'},
@@ -627,6 +629,9 @@ class Users(LDAPGroupModel):
             for field in clean_for_ldap_on_creation:
                 if getattr(self, field) is not None:
                     setattr(self, field, getattr(self, field).strip())
+        if not re.match(self.RE_USERNAME, str(self.username)):
+            raise ValidationError('Invalid username, did not match: {}.'.format(self.RE_USERNAME))
+
         clean_for_ldap = ['first_name','last_name']
         for field in clean_for_ldap:
             if getattr(self, field) is not None:
