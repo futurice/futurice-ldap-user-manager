@@ -418,6 +418,7 @@ class Users(LDAPGroupModel):
     hr_number = models.CharField(max_length=255, null=True, blank=True)
     active_in_planmill = models.IntegerField(default=PLANMILL_DISABLED, choices=ACTIVE_IN_PLANMILL_CHOICES)
     flowdock_uid = models.IntegerField(null=True, blank=True)
+    planmill_uid = models.PositiveIntegerField(null=True, blank=True)
     # FK
     supervisor = models.ForeignKey('self', null=True, blank=True)
 
