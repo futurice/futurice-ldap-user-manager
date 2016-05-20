@@ -53,7 +53,9 @@ def mod_resources(request, o):
                 resource = Resource.objects.get(pk=data.get('pk'))
                 for k,v in data['value'].iteritems():
                     setattr(resource, k, v)
+                
                 resource.save()
+
             else: # POST
                 resource = Resource(content_object=o, **data['value'])
                 resource.save()
@@ -506,6 +508,14 @@ class UsersViewSet(ListMixin, LDAPViewSet):
 
         changes_delete(None, ssh_key)
         return Response('', status=200)
+
+    def partial_update(self, request, username):
+        try:
+            viewsets.ModelViewSet.partial_update(self, request, username)
+        except ValidationError as e:
+            content = {'detail': ';'.join(e.messages)}
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
 
 class GroupsViewSet(ListMixin, LDAPViewSet):
     model = Groups
