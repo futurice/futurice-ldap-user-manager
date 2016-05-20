@@ -512,10 +512,10 @@ class UsersViewSet(ListMixin, LDAPViewSet):
     def partial_update(self, request, username):
         try:
             response = viewsets.ModelViewSet.partial_update(self, request, username)
-            return response
         except ValidationError as e:
             content = {'detail': ';'.join(e.messages)}
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
+        return response
 
 
 class GroupsViewSet(ListMixin, LDAPViewSet):
