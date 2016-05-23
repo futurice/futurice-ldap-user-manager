@@ -234,8 +234,11 @@ class LDAPViewSet(viewsets.ModelViewSet):
                 for alias in items:
                     try:
                         a = EMailAliases.objects.create(address=alias, parent=email)
+                    except ValueError, e:
+                        return Response("Please set the email before adding aliases", status=400)
                     except Exception, e:
                         return Response(e.messages, status=400)
+
                 
         
         if email:
@@ -253,6 +256,14 @@ class LDAPViewSet(viewsets.ModelViewSet):
             return super(LDAPViewSet, self).destroy(request,args,kwargs)
         except ValidationError as e:
             return Response("Access denied", status=403)
+
+    def partial_update(self, request, *args, **kwargs):
+        try:
+            response = viewsets.ModelViewSet.partial_update(self, request)
+        except ValidationError as e:
+            content = {'detail': '; '.join(e.messages)}
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+        return response
 
 class UsersViewSet(ListMixin, LDAPViewSet):
     model = Users
@@ -509,13 +520,6 @@ class UsersViewSet(ListMixin, LDAPViewSet):
         changes_delete(None, ssh_key)
         return Response('', status=200)
 
-    def partial_update(self, request, username):
-        try:
-            response = viewsets.ModelViewSet.partial_update(self, request, username)
-        except ValidationError as e:
-            content = {'detail': ';'.join(e.messages)}
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
-        return response
 
 
 class GroupsViewSet(ListMixin, LDAPViewSet):
