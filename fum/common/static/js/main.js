@@ -7,7 +7,13 @@ $.fn.editable.defaults.mode = 'inline';
 $.fn.editable.defaults.send = 'always';
 $.fn.editable.defaults.ajaxOptions = {type: "patch", contentType: "application/json"};
 $.fn.editable.defaults.error = function(response){
-    return response.responseJSON.detail;
+    if(response.responseJSON.detail != null){
+        return response.responseJSON.detail;
+    }
+    if(response.responseJSON["__all__"] != null){
+        return response.responseJSON["__all__"] + '';
+    }
+    return "Error";
 };
 $.fn.editable.defaults.params = function(params) {
     var r = {};
