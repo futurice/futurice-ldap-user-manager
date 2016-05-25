@@ -72,6 +72,7 @@ def groups_json(request):
     user = Users.objects.get(username=request.META['REMOTE_USER'])
     try:
         q = request.GET['q']
+        q = q.strip()
         filtered = Groups.objects.filter(name__icontains=q) 
         groups = [] 
         for group in filter_by_permissions(request, user, filtered.distinct()):
