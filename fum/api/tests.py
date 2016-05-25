@@ -673,10 +673,10 @@ class ApiTestCase(LdapTransactionSuite):
         self.assertEqual(project.get_email().address, group_mail)
         self.assertEqual(self.ldap_val('mail', project), [group_mail])
 
-        with self.assertRaises(ValidationError):
-            response = self.client.post("/api/projects/%s/"%project.name,
-                    {"email": mail,},
-                    HTTP_X_HTTP_METHOD_OVERRIDE='PATCH',)
+        response = self.client.post("/api/projects/%s/"%project.name,
+                {"email": mail,},
+                HTTP_X_HTTP_METHOD_OVERRIDE='PATCH',)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(project.get_email().address, group_mail)
         self.assertEqual(self.ldap_val('mail', project), [group_mail])
 
