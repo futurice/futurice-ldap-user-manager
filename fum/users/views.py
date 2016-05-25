@@ -53,7 +53,12 @@ class Create(CreateView):
 def users_json(request):
     try:
         q = request.GET['q']
-        filtered = Users.objects.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(username__icontains=q)) 
+        search_terms = q.split()
+
+        filtered = Users.objects
+        for word in search_terms:
+            filtered = filtered.filter(Q(first_name__icontains=word) | Q(last_name__icontains=word) | Q(username__icontains=word)) 
+        
         users = [] 
         for user in filtered.distinct():
             json_user={}
