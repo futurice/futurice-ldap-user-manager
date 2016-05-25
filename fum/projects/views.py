@@ -70,6 +70,7 @@ def projects_json(request):
     user = Users.objects.get(username = request.META['REMOTE_USER'])
     try:
         q = request.GET['q']
+        q = q.strip()
         filtered = Projects.objects.filter(name__icontains=q) 
         projects = [] 
         for project in filter_by_permissions(request, user, filtered.distinct()):
