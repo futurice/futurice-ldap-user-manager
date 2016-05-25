@@ -15,7 +15,7 @@ install:
     libldap2-dev libsasl2-dev
     libjpeg-dev
     libfreetype6-dev
-    postgresql libpq-dev
+    libpq-dev
     npm
     memcached
   - npm install
