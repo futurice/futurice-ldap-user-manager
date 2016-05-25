@@ -21,6 +21,7 @@ function marcopoloField2(el, opt){
       err = err.responseText;
     };
     fumErrors.set('marcopolo', err, 'error');
+    $.getJSON(apiUrl, updateTable);
   }
 
   var delicon = '<i class="icon-remove pull-right"></i>';

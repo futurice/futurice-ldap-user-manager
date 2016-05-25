@@ -159,7 +159,10 @@ def mod_groups(request, user, usergroups, classname):
         elif request.method == 'POST':
             for group in groups:
                 if user not in group.users.all():
-                    group.users.add(user)
+                    try:
+                        group.users.add(user)
+                    except ValidationError as e:
+                        return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
 
     json_groups = []
     for group in usergroups.all().values().order_by():
