@@ -65,11 +65,23 @@ function validatePassword(password) {
     numbers = new RegExp('[0-9]').test(password);
     special = new RegExp('[^a-zA-Z0-9]').test(password);
 
-    if (lower_case + upper_case + numbers + special < 3) {
+    if (lower_case + upper_case + numbers + special > 3) {
         return "You must have characters from at least 3 character groups (a-z, A-Z, 0-9, special)";
     }
 
     return "OK";
+}
+
+function validatePasswordLength(password) {
+    return password.length >= 10;
+}
+function validatePasswordCharacterGroups(password) {
+    lower_case = new RegExp('[a-z]').test(password);
+    upper_case = new RegExp('[A-Z]').test(password);
+    numbers = new RegExp('[0-9]').test(password);
+    special = new RegExp('[^a-zA-Z0-9]').test(password);
+
+    return (lower_case + upper_case + numbers + special) >= 3
 }
 
 $(document).ready(function(){
@@ -111,24 +123,35 @@ $(document).ready(function(){
 	    });
 	/* validations */
 	$('#password-new').bind("change paste keyup", function() {
-		$('#password-status').html(validatePassword($(this).val()));
+        if(!validatePasswordLength($(this).val())){
+            console.log("green");
+            $('#password-length').show();
+        }else{
+            $('#password-length').hide();
+        }
+        if(!validatePasswordCharacterGroups($(this).val())){
+            $('#password-character-groups').show();
+        }else{
+            $('#password-character-groups').hide();
+        }
+		//$('#password-status').html(validatePassword($(this).val()));
 		$('#password-new-again').change();
 	    });
 
 	$('#password-new-again').bind("change paste keyup", function() {
-		var state = "No match";
 		if ($(this).val() === $('#password-new').val() && $(this).val().length > 0) {
-		    state = "OK";
+            console.log("jaahas");
+		    $('#passwords-matching').hide();
 		    if (validatePassword($('#password-new').val()) === "OK") {
 			$('#password-change').removeClass('btn-warning').addClass('btn-success').removeAttr('disabled');
 		    }
 		} else {
+            $('#passwords-matching').show();
 		    $('#password-change').removeClass('btn-success').addClass('btn-warning').attr('disabled', 'disabled');
 		}
 		if ($(this).val().length < 1) {
-		    state = "";
+		    $('#passwords-matching').hide();
 		}
-		$('#password-status-again').html(state);
 	    });
 
 	/* custom ajax post */
@@ -136,7 +159,7 @@ $(document).ready(function(){
 		if ($('#password-new').val() === $('#password-new-again').val() && validatePassword($('#password-new').val()) === "OK") {
 		    $.post($(this).attr('data-url'), { 'password': $('#password-new').val(), 'old_password': $('#password-current').val() || "" })
 			.done(function() { $('#password-cancel').click(); })
-			.fail(function(data) { $('#password-status-again').html(data.responseText); });
+			.fail(function(data) { $('#wrong-password-alert').show(); });
 		} else {
 		    return;
 		}
