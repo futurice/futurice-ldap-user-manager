@@ -102,6 +102,9 @@ $(document).ready(function(){
 	 */
 	$('#password-modal').on('shown', function() {
 		$('#password-modal input:visible').first().focus();
+        $('#password-length').show();
+        $('#password-character-groups').show();
+        $('#passwords-matching').hide();
 	    });
 
 	$('#password-modal').on('hide', function() {
