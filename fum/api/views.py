@@ -323,9 +323,9 @@ class UsersViewSet(ListMixin, LDAPViewSet):
                 user.set_ldap_password(password)
                 return Response("Ok", status=200)
             except Exception, e:
-                return Response("Fail: %s"%e, status=500)
+                return Response("New password too similar to the username or to an old password", status=403)
         else:
-            return Response("Old password fail", status=403)
+            return Response("Incorrect old password", status=403)
 
     # TODO: Faster failing option: try to first write to ldap, only then save the image files to disk?
     @action(methods=['post'])

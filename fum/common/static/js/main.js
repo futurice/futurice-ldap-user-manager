@@ -108,11 +108,11 @@ $(document).ready(function(){
 		$('#password-new, #password-new-again, #password-current').val('');
 		$('#password-status, #password-status-again').html('');
 		$('#password-new-again').change();
+        $('#wrong-password-alert').hide();
 	    });
 	/* validations */
 	$('#password-new').bind("change paste keyup", function() {
         if(!validatePasswordLength($(this).val())){
-            console.log("green");
             $('#password-length').show();
         }else{
             $('#password-length').hide();
@@ -127,7 +127,6 @@ $(document).ready(function(){
 
 	$('#password-new-again').bind("change paste keyup", function() {
 		if ($(this).val() === $('#password-new').val() && $(this).val().length > 0) {
-            console.log("jaahas");
 		    $('#passwords-matching').hide();
 		    if (validatePassword($('#password-new').val())) {
 			$('#password-change').removeClass('btn-warning').addClass('btn-success').removeAttr('disabled');
@@ -146,7 +145,10 @@ $(document).ready(function(){
 		if ($('#password-new').val() === $('#password-new-again').val() && validatePassword($('#password-new').val())) {
 		    $.post($(this).attr('data-url'), { 'password': $('#password-new').val(), 'old_password': $('#password-current').val() || "" })
 			.done(function() { $('#password-cancel').click(); })
-			.fail(function(data) { $('#wrong-password-alert').show(); });
+			.fail(function(data) {
+                $('#wrong-password-alert').html(data.responseText.replace(/\"/g, ""));
+                $('#wrong-password-alert').show();
+            });
 		} else {
 		    return;
 		}
