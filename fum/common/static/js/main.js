@@ -56,20 +56,8 @@ $.fn.editable.defaults.select2 = {
 })();
 
 function validatePassword(password) {
-    if (password.length < 10) {
-        return "Password has to be at least 10 characters long";
-    }
-
-    lower_case = new RegExp('[a-z]').test(password);
-    upper_case = new RegExp('[A-Z]').test(password);
-    numbers = new RegExp('[0-9]').test(password);
-    special = new RegExp('[^a-zA-Z0-9]').test(password);
-
-    if (lower_case + upper_case + numbers + special > 3) {
-        return "You must have characters from at least 3 character groups (a-z, A-Z, 0-9, special)";
-    }
-
-    return "OK";
+    return validatePasswordLength(password) &&
+        validatePasswordCharacterGroups(password);
 }
 
 function validatePasswordLength(password) {
@@ -134,7 +122,6 @@ $(document).ready(function(){
         }else{
             $('#password-character-groups').hide();
         }
-		//$('#password-status').html(validatePassword($(this).val()));
 		$('#password-new-again').change();
 	    });
 
@@ -142,7 +129,7 @@ $(document).ready(function(){
 		if ($(this).val() === $('#password-new').val() && $(this).val().length > 0) {
             console.log("jaahas");
 		    $('#passwords-matching').hide();
-		    if (validatePassword($('#password-new').val()) === "OK") {
+		    if (validatePassword($('#password-new').val())) {
 			$('#password-change').removeClass('btn-warning').addClass('btn-success').removeAttr('disabled');
 		    }
 		} else {
@@ -156,7 +143,7 @@ $(document).ready(function(){
 
 	/* custom ajax post */
 	$('#password-change').click(function() {
-		if ($('#password-new').val() === $('#password-new-again').val() && validatePassword($('#password-new').val()) === "OK") {
+		if ($('#password-new').val() === $('#password-new-again').val() && validatePassword($('#password-new').val())) {
 		    $.post($(this).attr('data-url'), { 'password': $('#password-new').val(), 'old_password': $('#password-current').val() || "" })
 			.done(function() { $('#password-cancel').click(); })
 			.fail(function(data) { $('#wrong-password-alert').show(); });
