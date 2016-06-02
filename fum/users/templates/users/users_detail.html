@@ -181,17 +181,20 @@
     {% if sudo %}
         <a href="{% url "users-changepassword" object.username %}" id="sudo_change_password">SUDO: Change to a random password and send it via SMS</a>
     {% endif %}
-
+    <div id="wrong-password-alert" class="alert alert-danger" style="display:none;"></div>
+        <div id="password-length" class="alert alert-info">Password must be at least 10 characters long</div>
+        <div id="password-character-groups" class="alert alert-info">Password must have characters from at least 3 character groups (a-z, A-Z, 0-9, special)</div>
+        <div id="passwords-matching" class="alert alert-info" style="display:none;">Passwords don't match</div>
     {% if not sudo %}
+        
         <label>Current password</label>
         <input type="password" id="password-current"></input>
     {% endif %}
+    <br>
     <label>New password</label>
     <input type="password" id="password-new"></input>
-    <div id="password-status"></div>
     <label>Again</label>
     <input type="password" id="password-new-again"></input>
-    <div id="password-status-again"></div>
   </div>
   <div class="modal-footer">
     <a href="#" class="btn" data-dismiss="modal" id="password-cancel">Cancel</a>

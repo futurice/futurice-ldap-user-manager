@@ -56,20 +56,20 @@ $.fn.editable.defaults.select2 = {
 })();
 
 function validatePassword(password) {
-    if (password.length < 10) {
-        return "Password has to be at least 10 characters long";
-    }
+    return validatePasswordLength(password) &&
+        validatePasswordCharacterGroups(password);
+}
 
+function validatePasswordLength(password) {
+    return password.length >= 10;
+}
+function validatePasswordCharacterGroups(password) {
     lower_case = new RegExp('[a-z]').test(password);
     upper_case = new RegExp('[A-Z]').test(password);
     numbers = new RegExp('[0-9]').test(password);
     special = new RegExp('[^a-zA-Z0-9]').test(password);
 
-    if (lower_case + upper_case + numbers + special < 3) {
-        return "You must have characters from at least 3 character groups (a-z, A-Z, 0-9, special)";
-    }
-
-    return "OK";
+    return (lower_case + upper_case + numbers + special) >= 3
 }
 
 $(document).ready(function(){
@@ -102,41 +102,56 @@ $(document).ready(function(){
 	 */
 	$('#password-modal').on('shown', function() {
 		$('#password-modal input:visible').first().focus();
+        $('#password-length').show();
+        $('#password-character-groups').show();
+        $('#passwords-matching').hide();
 	    });
 
 	$('#password-modal').on('hide', function() {
 		$('#password-new, #password-new-again, #password-current').val('');
 		$('#password-status, #password-status-again').html('');
 		$('#password-new-again').change();
+        $('#wrong-password-alert').hide();
 	    });
 	/* validations */
 	$('#password-new').bind("change paste keyup", function() {
-		$('#password-status').html(validatePassword($(this).val()));
+        if(!validatePasswordLength($(this).val())){
+            $('#password-length').show();
+        }else{
+            $('#password-length').hide();
+        }
+        if(!validatePasswordCharacterGroups($(this).val())){
+            $('#password-character-groups').show();
+        }else{
+            $('#password-character-groups').hide();
+        }
 		$('#password-new-again').change();
 	    });
 
 	$('#password-new-again').bind("change paste keyup", function() {
-		var state = "No match";
 		if ($(this).val() === $('#password-new').val() && $(this).val().length > 0) {
-		    state = "OK";
-		    if (validatePassword($('#password-new').val()) === "OK") {
+		    $('#passwords-matching').hide();
+		    if (validatePassword($('#password-new').val())) {
 			$('#password-change').removeClass('btn-warning').addClass('btn-success').removeAttr('disabled');
 		    }
 		} else {
+            $('#passwords-matching').show();
 		    $('#password-change').removeClass('btn-success').addClass('btn-warning').attr('disabled', 'disabled');
 		}
 		if ($(this).val().length < 1) {
-		    state = "";
+		    $('#passwords-matching').hide();
 		}
-		$('#password-status-again').html(state);
 	    });
 
 	/* custom ajax post */
 	$('#password-change').click(function() {
-		if ($('#password-new').val() === $('#password-new-again').val() && validatePassword($('#password-new').val()) === "OK") {
+		if ($('#password-new').val() === $('#password-new-again').val() && validatePassword($('#password-new').val())) {
 		    $.post($(this).attr('data-url'), { 'password': $('#password-new').val(), 'old_password': $('#password-current').val() || "" })
 			.done(function() { $('#password-cancel').click(); })
-			.fail(function(data) { $('#password-status-again').html(data.responseText); });
+			.fail(function(data) {
+                $('#wrong-password-alert').html(data.responseText.replace(/\"/g, ""));
+                $('#wrong-password-alert').show();
+            });
 		} else {
 		    return;
 		}
