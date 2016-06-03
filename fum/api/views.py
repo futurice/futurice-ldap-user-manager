@@ -601,7 +601,7 @@ def list_employees(request):
         rs = []
         for group in groups:
             for user in group.users.all():
-                if user.active_in_planmill:
+                if user.active_in_planmill == Users.PLANMILL_ACTIVE:
                     user_data = UsersSerializer(user).data
                     if not filter(lambda x: x['id']==user_data['id'], rs):
                         rs.append(user_data)
