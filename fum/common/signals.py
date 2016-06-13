@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from fum.api.changes import changes_update_m2m
 from fum.common.middleware import get_current_request
 from fum.decorators import receiver_subclasses
-from fum.models import LDAPModel, Groups, Servers, Projects, Users, EMailAliases, EMails, Resource
+from fum.models import LDAPModel, Groups, Servers, Projects, Users, EMails, Resource, ldap_email, ldap_emailalias
 
 from pprint import pprint as pp
 import ldap
@@ -39,26 +39,13 @@ def projects_email(sender, *args, **kwargs):
 def email_delete(sender, *args, **kwargs):
     instance = kwargs['instance']
     if instance.content_object:
+        fn = ldap_email
+        if instance.alias_for:
+            fn = ldap_emailalias
         try:
-            instance.content_object.ldap.delete_relation(parent=instance.content_object, child=u'%s'%instance.address, field=instance)
+            instance.content_object.ldap.delete_relation(parent=instance.content_object, child=u'%s'%instance.address, field=fn(instance))
         except (ldap.NO_SUCH_OBJECT, ldap.NO_SUCH_ATTRIBUTE) as e:
             pass
-
-@receiver(post_delete, sender=EMailAliases)
-def email_alias_delete(sender, *args, **kwargs):
-    instance = kwargs['instance']
-    try:
-        parent = instance.parent.content_object
-    except (ObjectDoesNotExist), e:
-        # if parent is gone, aliases are also gone
-        log.debug(e)
-        return
-    if not parent:
-        return
-    try:
-        parent.ldap.delete_relation(parent=parent, child=u'%s'%instance.address, field=instance)
-    except (ldap.NO_SUCH_OBJECT, ldap.NO_SUCH_ATTRIBUTE) as e:
-        pass
 
 #
 # pre_delete
@@ -216,7 +203,6 @@ post_save.connect(changes_save, sender=Servers)
 post_save.connect(changes_save, sender=Projects)
 post_save.connect(changes_save, sender=Users)
 post_save.connect(changes_save, sender=EMails)
-post_save.connect(changes_save, sender=EMailAliases)
 post_save.connect(changes_save, sender=Resource)
 
 post_save.connect(projects_email, sender=Projects)

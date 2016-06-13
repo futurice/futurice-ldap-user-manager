@@ -1,5 +1,5 @@
 import django.conf.global_settings as DEFAULT_SETTINGS
-import os, datetime, copy
+import os, datetime, copy, sys
 import getpass
 from pwd import getpwnam
 
@@ -44,7 +44,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-MEDIA_ROOT = '{PROJECT_ROOT}/media/'.format(**locals())
+MEDIA_ROOT = '/opt/media/'
 MEDIA_URL = '/media/'
 
 # Location of users' portrait pictures
@@ -55,8 +55,11 @@ PORTRAIT_BADGE_URL = '{}portraits/badge/'.format(MEDIA_URL)
 PORTRAIT_FULL_FOLDER = '%sportraits/full/' % MEDIA_ROOT
 PORTRAIT_FULL_URL = '%sportraits/full/' % MEDIA_URL
 
-STATIC_ROOT = '{PROJECT_ROOT}/static/'.format(**locals())
+STATIC_ROOT = '/opt/static/'
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = ()
+STATICFILES_FINDERS = DEFAULT_SETTINGS.STATICFILES_FINDERS
 
 MIDDLEWARE_CLASSES = (
     'fum.common.middleware.ThreadLocals',
@@ -93,7 +96,7 @@ INSTALLED_APPS = (
 
     'django_extensions',
     'crispy_forms',
-    #'haystack',
+    'haystack',
     'djangohistory',
     'rest_framework',
     'rest_framework_docs',
@@ -261,4 +264,4 @@ try:
     # add any secrets here; local_settings needs to be somewhere in PYTHONPATH (eg. project-root, user-root)
     from local_settings import *
 except Exception, e:
-    print "No local_settings configured, ignoring..."
+    sys.stderr.write("No local_settings configured, ignoring...\n")

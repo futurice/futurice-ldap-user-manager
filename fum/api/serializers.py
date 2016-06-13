@@ -6,7 +6,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.compat import smart_text
 
 from fum.models import (
-    Users, Groups, Servers, Projects, EMails, Resource, EMailAliases, SSHKey,
+    Users, Groups, Servers, Projects, EMails, Resource, SSHKey,
     get_generic_email,
 )
 from fum.common.middleware import get_current_request
@@ -196,17 +196,7 @@ class EMailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EMails
-        fields = ('id', 'address',)
-
-#
-# Aliases
-#
-class AliasesSerializer(serializers.ModelSerializer):
-    parent = serializers.Field(source='parent')
-
-    class Meta:
-        model = EMailAliases
-        fields = ('id', 'address', 'parent')
+        fields = ('id', 'address', 'alias_for')
 
 #
 # SSH Keys

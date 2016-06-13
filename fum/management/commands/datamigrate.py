@@ -106,7 +106,8 @@ class Command(BaseCommand):
         ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, 0)
 
         con = ldap.initialize(ldap_server)
-        con.start_tls_s()
+        if settings.USE_TLS:
+            con.start_tls_s()
         con.simple_bind_s(dn,pw)
 
         # get users from ldap
@@ -144,13 +145,16 @@ class Command(BaseCommand):
                 try:
                     email = EMails(address=email_address,content_object=user)
                     email.save()
+                except (ValidationError, IntegrityError), e:
+                    print u, e
+                try:
                     # process email aliases also
                     if 'proxyaddress' in v:
                         for proxy in v['proxyaddress']:
                             if not isEmailAddressValid(proxy):
                                 print "invalid email", proxy
                                 continue
-                            email_alias = EMailAliases(address=proxy,parent=email)
+                            email_alias = EMails(address=proxy,alias_for=email,content_object=user)
                             email_alias.save()
                 except (ValidationError, IntegrityError), e:
                     print u, e
@@ -159,11 +163,12 @@ class Command(BaseCommand):
 
             for ssh_key_text in (v.get(SSHKey.LDAP_ATTR) or []):
                 try:
-                    ssh_key = SSHKey.objects.get(key=ssh_key_text)
+                    key = ssh_key_text.strip()
+                    ssh_key = SSHKey.objects.get(key=key)
                 except SSHKey.DoesNotExist:
-                    ssh_key = SSHKey(key=ssh_key_text, title='ssh key')
-                ssh_key.user = user
-                ssh_key.save()
+                    ssh_key = SSHKey(key=key, title='ssh key')
+                    ssh_key.user = user
+                    ssh_key.save()
 
         print "Users done"
 
@@ -217,17 +222,19 @@ class Command(BaseCommand):
                 try:
                     email.save()
                 except (ValidationError, IntegrityError), e:
-                    log.debug("DUPLICATE EMAIL; ADDING RANDOM PREFIX (these are not use yet --Vesa) ::cross fingers:: "+email_address)
-                    email.address = email_address.replace('@','-tre@')
-                    email.save()
+                    if not 'already exists' in unicode(e):
+                        print e
+                        log.debug("DUPLICATE EMAIL"+email_address)
+                        email.save()
                 # email aliases
                 if 'proxyaddress' in v:
                     for proxy in v['proxyaddress']:
                         if not isEmailAddressValid(proxy):
                             #print "invalid email", proxy
                             continue
-                        if not EMailAliases.objects.filter(address=proxy).count() and not EMails.objects.filter(address=proxy).exists():
-                            EMailAliases(address=proxy, parent=email).save()
+                        if not EMails.objects.filter(address=proxy).exists():
+                            log.debug("parent: %s"%(email))
+                            EMails(address=proxy, alias_for=email, content_object=group).save()
             elif 'proxyaddress' in v:
                 log.debug("group "+group.name+" doesn't have a primary email, but shill has email aliases... not good!")
             # group members

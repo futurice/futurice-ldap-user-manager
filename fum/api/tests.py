@@ -23,7 +23,7 @@ from ldap import modlist
 
 from fum.ldap_helpers import test_user_ldap, ldap_cls, PoolLDAPBridge, LDAPBridge
 from fum.models import (
-    Users, Servers, Groups, Projects, EMails, EMailAliases, BaseGroup,
+    Users, Servers, Groups, Projects, EMails, BaseGroup,
     Resource, SSHKey,
 )
 
@@ -350,6 +350,8 @@ class LdapSanityCase(TestCase):
         self.mockldap.stop()
 
     def test_signals_mocked(self):
+        if 'test_live' in os.environ.get('DJANGO_SETTINGS_MODULE'):
+            return
         # ReconnectingLDAPBridge re-uses initial connection
         option_count = len(settings.LDAP_CONNECTION_OPTIONS)
         tls = ['initialize'] + ['set_option']*option_count + ['initialize']

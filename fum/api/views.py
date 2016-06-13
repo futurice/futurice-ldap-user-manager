@@ -22,7 +22,7 @@ from serializers import *
 
 from fum.api.changes import changes_save, changes_delete
 from fum.ldap_helpers import test_user_ldap
-from fum.models import EMailAliases, Resource, Users, SSHKey
+from fum.models import Resource, Users, SSHKey
 from fum.common.util import SMS, random_ldap_password
 from fum.api.serializers import UsersSerializer
 
@@ -227,7 +227,7 @@ class LDAPViewSet(viewsets.ModelViewSet):
             if request.method =='DELETE':
                 for alias in items:
                     try:
-                        a = EMailAliases.objects.get(address=alias, parent=email).delete()
+                        a = EMails.objects.get(address=alias, alias_for=email).delete()
                     except ValidationError as e:
                         return Response(e.messages, status=403)
                     except KeyError: 
@@ -236,7 +236,7 @@ class LDAPViewSet(viewsets.ModelViewSet):
             elif request.method == 'POST':
                 for alias in items:
                     try:
-                        a = EMailAliases.objects.create(address=alias, parent=email)
+                        a = EMails.objects.create(address=alias, alias_for=email)
                     except ValueError, e:
                         return Response("Please set the email before adding aliases", status=400)
                     except Exception, e:
@@ -565,11 +565,6 @@ class ProjectsViewSet(ListMixin, LDAPViewSet):
 class EMailsViewSet(BaseViewSet):
     model = EMails
     serializer_class = EMailsSerializer
-    lookup_field = 'address'
-
-class EMailAliasesViewSet(BaseViewSet):
-    model = EMailAliases
-    serializer_class = AliasesSerializer
     lookup_field = 'address'
 
 class SSHKeysViewSet(viewsets.ReadOnlyModelViewSet):

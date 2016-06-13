@@ -10,13 +10,12 @@ router.register(r'groups', views.GroupsViewSet)
 router.register(r'servers', views.ServersViewSet)
 router.register(r'projects', views.ProjectsViewSet)
 router.register(r'emails', views.EMailsViewSet)
-router.register(r'aliases', views.EMailAliasesViewSet)
 router.register(r'sshkeys', views.SSHKeysViewSet)
 
 # rest-framework serializers are not done yet; refactor mod_* code to get routings done by the framework
 router_urls = router.get_urls()
 related_urls = []
-patch_support_for_relations = ['users','resources','aliases','sudoers','projects','groups']
+patch_support_for_relations = ['users','resources','sudoers','projects','groups']
 def add_related_patterns():
     for p in patch_support_for_relations:
         for k in router.get_urls():

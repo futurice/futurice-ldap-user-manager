@@ -59,7 +59,7 @@ generate:
     - fum/common/static/css/main.less
     - fum/common/static/css/imgareaselect-animated.css
 
-output.directory: static
+output.directory: /opt/static
 output.hashed: true
 output.manifest: assets.json
 

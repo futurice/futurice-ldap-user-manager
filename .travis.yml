@@ -1,33 +1,13 @@
+sudo: required
 language: python
 python:
   - "2.7"
 
-addons:
-  postgresql: "9.3"
+services:
+  - docker
 
-install:
-  - sudo apt-get update -y &&
-    sudo apt-get install -y
-    build-essential htop
-    python-dev python-pip python-virtualenv
-    libxml2-dev libxslt1-dev
-    libcurl4-openssl-dev libssl-dev zlib1g-dev libpcre3-dev
-    libldap2-dev libsasl2-dev
-    libjpeg-dev
-    libfreetype6-dev
-    libpq-dev
-    npm
-    memcached
-  - npm install
-  - pip install -r requirements.txt
+before_install:
+  - docker build -t fum .
+  - docker build -t fum-test docker/test/
 
-  - mkdir -p media/portraits/full media/portraits/thumb media/portraits/badge
-  - psql -c 'create database fum;' -U postgres
-  - cp local_settings.py.template local_settings.py
-  - sed -i local_settings.py
-    -e "s/^SECRET_KEY =.*$/SECRET_KEY = 'test'/"
-    -e "s/company/futurice/g"
-    -e "s/Company/Futurice/g"
-    -e 's/example\.com/futurice.com/g'
-
-script: python manage.py test --settings=fum.settings.test --noinput fum
+script: docker run fum-test
