@@ -93,7 +93,7 @@ INSTALLED_APPS = (
 
     'django_extensions',
     'crispy_forms',
-    #'haystack',
+    'haystack',
     'djangohistory',
     'rest_framework',
     'rest_framework_docs',
@@ -203,7 +203,7 @@ ENFORCE_PROJECT_NAMING = True
 
 # LDAP
 import ldap
-USE_TLS = True
+USE_TLS = False
 LDAP_CLASS = 'fum.ldap_helpers.PoolLDAPBridge'
 LDAP_RETRY_DELAY = 1
 LDAP_RETRY_MAX = 3
