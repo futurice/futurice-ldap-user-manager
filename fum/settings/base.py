@@ -203,7 +203,7 @@ ENFORCE_PROJECT_NAMING = True
 
 # LDAP
 import ldap
-USE_TLS = False
+USE_TLS = True
 LDAP_CLASS = 'fum.ldap_helpers.PoolLDAPBridge'
 LDAP_RETRY_DELAY = 1
 LDAP_RETRY_MAX = 3
@@ -218,7 +218,7 @@ LDAP_CONNECTION_OPTIONS = {
 
 # CHANGES WEBSOCKET ENDPOINT
 CHANGES_SOCKET = '/tmp/fum3changes.sock'
-CHANGES_SOCKET_ENABLED = True
+CHANGES_SOCKET_ENABLED = False
 CHANGES_FAILED_LOG = '/tmp/changes_failed.json'
 
 SUDO_TIMEOUT = 90#in minutes

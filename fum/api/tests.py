@@ -350,6 +350,8 @@ class LdapSanityCase(TestCase):
         self.mockldap.stop()
 
     def test_signals_mocked(self):
+        if 'test_live' in os.environ.get('DJANGO_SETTINGS_MODULE'):
+            return
         # ReconnectingLDAPBridge re-uses initial connection
         option_count = len(settings.LDAP_CONNECTION_OPTIONS)
         tls = ['initialize'] + ['set_option']*option_count + ['initialize']
