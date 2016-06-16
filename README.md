@@ -21,18 +21,35 @@ sed -e "s/^SECRET_KEY =.*$/SECRET_KEY = 'test'/" \
 # set USE_TLS=False if some LDAP connections don't work
 # Change IT_TEAM to an existing group you're part of to get SUDO permission
 ```
+Run using Docker
+================
+First build & run your local 389 ldap-server on docker. Insert your 389-servers IP address to `local_settings.py > LDAP_CONNECTION > uri`. 389-server should be running while building FUM. 
+Set `USE_TLS` and `CHANGES_SOCKET_ENABLED` in `settings/base.py` to False.
 
-Run using Vagrant
-=================
-Enter your LDAP username in `vagrant/REMOTE_USER`, e.g.:
-```bash
-echo username >vagrant/REMOTE_USER
+Build the docker image:
+```
+docker build -t fum-docker futurice-ldap-user-manager/
 ```
 
-```bash
-vagrant up
+Run:
 ```
-[localhost:8000](http://localhost:8000)
+docker run -p 8080:8000 fum-docker
+```
+
+Now FUM should be running locally and can be viewed on `localhost:8080`
+
+To search with Solr+Haystack:
+````
+docker exec <fum container name> ./manage.py update_index
+````
+
+Running tests:
+```
+docker exec <fum container name> ./manage.py test --settings=fum.settings.test_live
+```
+FUM should be running while running tests.
+
+
 
 Develop locally using Procboy
 =============================
