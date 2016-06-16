@@ -54,6 +54,6 @@ RUN export PATH=$PATH:/apache-solr-3.6.2/example/solr/conf/
 
 
 EXPOSE 8000
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-CMD ["bash", "start.sh"]
+CMD ["bash", "docker/start.sh"]
