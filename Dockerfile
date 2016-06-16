@@ -23,6 +23,9 @@ RUN apt-get install -y \
 
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 
+RUN apt-get install -y wget unzip
+RUN wget -q http://archive.apache.org/dist/lucene/solr/3.6.2/apache-solr-3.6.2.zip
+RUN unzip apache-solr-3.6.2.zip
 
 ### DEPENDENCIES ### 
 
@@ -40,24 +43,17 @@ RUN /etc/init.d/postgresql start &&\
 	psql --command 'CREATE USER root;' &&\
     createdb -O root fum
 USER root
-RUN /etc/init.d/postgresql start &&\
-	./manage.py migrate --noinput &&\
-	./manage.py datamigrate &&\
-	./manage.py collectstatic --noinput
 
 
 ### SOLR ###
 
-RUN apt-get install -y wget unzip
-RUN wget -q http://archive.apache.org/dist/lucene/solr/3.6.2/apache-solr-3.6.2.zip
-RUN unzip apache-solr-3.6.2.zip
 RUN ./manage.py build_solr_schema > schema.xml
 RUN cp schema.xml apache-solr-3.6.2/example/solr/conf/
 RUN cp apache-solr-3.6.2/example/solr/conf/stopwords.txt apache-solr-3.6.2/example/solr/conf/stopwords_en.txt
 RUN export PATH=$PATH:/apache-solr-3.6.2/example/solr/conf/
 
 
-EXPOSE 8080
+EXPOSE 8000
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+CMD ["bash", "start.sh"]
