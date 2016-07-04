@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from django.template.loader import get_template
 from django.conf import settings
+from django.template import Context
 
 from optparse import make_option
 from datetime import datetime
@@ -34,6 +35,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.suspended = []
         self.activated = []
+        self.emailed = []
+        
         dry = options['dry']
         force = options['force']
         if dry:
@@ -56,7 +59,7 @@ class Command(BaseCommand):
                     log.info("Disabling user: %s %s (%s)"%(user.first_name, user.last_name, user.username))
                     self.suspended.append(user)
                     subject = "%s password has expired."%(settings.COMPANY_NAME)
-                    self.send(user, subject, expired_message, body, dry)
+                    self.send(user, subject, expired_message, dry)
 
                     if dry:
                         continue
