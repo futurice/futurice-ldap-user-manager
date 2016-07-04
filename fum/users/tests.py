@@ -608,6 +608,37 @@ class ReminderTestCase(LdapSuite):
         self.assertTrue( u1 in [k[0] for k in c.emailed] )
         self.assertFalse( u2 in [k[0] for k in c.emailed] )
 
+    def test_suspend_user_email_is_sent(self):
+        du1,u1 = self.create_user('expired_user')
+        du2,u2 = self.create_user('expiring_user')
+        du3,u3 = self.create_user('not_expired_user')
+        dtnow = now()
+        u1.suspended_date = (dtnow - datetime.timedelta(days=5))
+        # one extra hour is added because only full days count as days
+        u2.suspended_date = (dtnow + datetime.timedelta(days=7, hours=1))
+        u1.email.add(EMails(address='u1@futurice.com', content_object=u1))
+        u2.email.add(EMails(address='u2@futurice.com', content_object=u2))
+        u3.email.add(EMails(address='u3@futurice.com', content_object=u3))
+        u1.save()
+        u2.save()
+        u3.save()
+        
+        with self.settings(EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend'):
+            with patch('fum.management.commands.suspendaccounts.send_mail') as o:
+                c = SuspendAccountCommand()
+                c.handle('suspendaccounts', dry=True, force=True)
+                self.assertFalse(o.called)
+
+        with self.settings(EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend'):
+            with patch('fum.management.commands.suspendaccounts.send_mail') as o:
+                c = SuspendAccountCommand()
+                c.handle('suspendaccounts', dry=False, force=True)
+                self.assertTrue(o.called)
+
+        self.assertTrue(u1 in  [k[0] for k in c.emailed] )
+        self.assertTrue(u2 in [k[0] for k in c.emailed] )
+        self.assertFalse(u3 in [k[0] for k in c.emailed] )
+
     def test_suspend_user(self):
         du1,u1 = self.create_user('amsuspended')
         dtnow = now().replace(hour=0, minute=0, microsecond=0, second=00)
