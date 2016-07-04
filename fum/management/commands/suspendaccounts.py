@@ -36,7 +36,7 @@ class Command(BaseCommand):
         self.suspended = []
         self.activated = []
         self.emailed = []
-        
+
         dry = options['dry']
         force = options['force']
         if dry:
@@ -47,7 +47,9 @@ class Command(BaseCommand):
         expired_message = get_template('emails/account_suspended.txt')
 
         for user in Users.objects.all():
+
             if user.suspended_date and user.google_status == user.ACTIVEPERSON:
+
                 days_left = (user.suspended_date - now).days
 
                 if days_left == 1 or days_left == 7 or days_left == 14:
@@ -58,7 +60,7 @@ class Command(BaseCommand):
                 elif days_left <= 0:
                     log.info("Disabling user: %s %s (%s)"%(user.first_name, user.last_name, user.username))
                     self.suspended.append(user)
-                    subject = "%s password has expired."%(settings.COMPANY_NAME)
+                    subject = "Your %s account has expired."%(settings.COMPANY_NAME)
                     self.send(user, subject, expired_message, dry)
 
                     if dry:
