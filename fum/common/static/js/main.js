@@ -395,7 +395,7 @@ function join_this(el) {
     data: JSON.stringify({items: [request_user]}),
     contentType: 'application/json',
     error: function(data) {
-      fumErrors.set('marcopolo', data, 'error')
+      fumErrors.set('marcopolo', data.responseText, 'error')
     },
     success: function(data){
       window.location.reload();
