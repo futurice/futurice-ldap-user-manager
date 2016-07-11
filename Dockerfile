@@ -33,7 +33,7 @@ COPY requirements.txt /opt/app/
 RUN apt-get install -y libffi-dev && pip install -r requirements.txt
 
 COPY . /opt/app/
-RUN npm install
+RUN npm install && ln -s /opt/app/node_modules/less/bin/lessc /usr/bin/
 
 ### POSTGRES ###
 
