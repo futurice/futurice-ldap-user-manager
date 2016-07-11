@@ -102,9 +102,8 @@ $(document).ready(function(){
 	 */
 	$('#password-modal').on('shown', function() {
 		$('#password-modal input:visible').first().focus();
-        $('#password-length').show();
-        $('#password-character-groups').show();
-        $('#passwords-matching').hide();
+        $('#password-length').removeClass('alert alert-success').addClass('alert alert-warning');
+        $('#password-character-groups').removeClass('alert alert-success').addClass('alert alert-warning');
 	    });
 
 	$('#password-modal').on('hide', function() {
@@ -115,31 +114,30 @@ $(document).ready(function(){
 	    });
 	/* validations */
 	$('#password-new').bind("change paste keyup", function() {
-        if(!validatePasswordLength($(this).val())){
-            $('#password-length').show();
+        console.log("password-new");
+        if(validatePasswordLength($(this).val())){
+            console.log("yeah");
+            $('#password-length').removeClass('alert alert-warning').addClass('alert alert-success');
         }else{
-            $('#password-length').hide();
+            $('#password-length').removeClass('alert alert-success').addClass('alert alert-warning');
         }
-        if(!validatePasswordCharacterGroups($(this).val())){
-            $('#password-character-groups').show();
+        if(validatePasswordCharacterGroups($(this).val())){
+            $('#password-character-groups').removeClass('alert alert-warning').addClass('alert alert-success');
         }else{
-            $('#password-character-groups').hide();
+            $('#password-character-groups').removeClass('alert alert-success').addClass('alert alert-warning');
         }
 		$('#password-new-again').change();
 	    });
 
 	$('#password-new-again').bind("change paste keyup", function() {
 		if ($(this).val() === $('#password-new').val() && $(this).val().length > 0) {
-		    $('#passwords-matching').hide();
+		    $('#passwords-matching').removeClass('alert alert-warning').addClass('alert alert-success');
 		    if (validatePassword($('#password-new').val())) {
 			$('#password-change').removeClass('btn-warning').addClass('btn-success').removeAttr('disabled');
 		    }
 		} else {
-            $('#passwords-matching').show();
+            $('#passwords-matching').removeClass('alert alert-success').addClass('alert alert-warning');
 		    $('#password-change').removeClass('btn-success').addClass('btn-warning').attr('disabled', 'disabled');
-		}
-		if ($(this).val().length < 1) {
-		    $('#passwords-matching').hide();
 		}
 	    });
 
