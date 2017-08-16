@@ -789,12 +789,9 @@ class EMails(Mother):
             self.full_clean()
         except ValidationError, e:
             ok_ = ['already exists',]
-            err_ = ['not valid','Enter a valid',]
             if self.address:
                 if any(k in unicode(e) for k in ok_):
                     pass
-                elif any(k in unicode(e) for k in err_):
-                    raise
                 else:
                     raise
 

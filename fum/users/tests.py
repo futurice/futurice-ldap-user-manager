@@ -220,7 +220,6 @@ class UserTest(LdapTransactionSuite):
 
 
     def test_bad_password(self):
-        # TODO: ldap-environment (+mock) that fails when using bad password
         password='bad'
         u = self.save_safe(Users,
                 kw=dict(first_name="Bad", last_name="Password", username='bpas', google_status=Users.ACTIVEPERSON),
