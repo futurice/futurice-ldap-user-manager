@@ -154,7 +154,7 @@ class Command(BaseCommand):
                             if not isEmailAddressValid(proxy):
                                 print "invalid email", proxy
                                 continue
-                            email_alias = EMails(address=proxy,alias_for=email,content_object=user)
+                            email_alias = EMails(address=proxy,alias=True,content_object=user)
                             email_alias.save()
                 except (ValidationError, IntegrityError), e:
                     print u, e
@@ -234,7 +234,7 @@ class Command(BaseCommand):
                             continue
                         if not EMails.objects.filter(address=proxy).exists():
                             log.debug("parent: %s"%(email))
-                            EMails(address=proxy, alias_for=email, content_object=group).save()
+                            EMails(address=proxy, alias=True, content_object=group).save()
             elif 'proxyaddress' in v:
                 log.debug("group "+group.name+" doesn't have a primary email, but shill has email aliases... not good!")
             # group members

@@ -146,6 +146,8 @@ class ActorPermission(object):
         if is_sudo_user:
             self.P.whitelist.append('SUDO enabled')
         self.is_in_it()
+        if hasattr(self.instance, 'skip_ldap') and self.instance.skip_ldap:
+            self.P.whitelist.append('email uniqueness delete allowed')
         self.editor_group_restriction()
 
     def has_user_permission_to_delete(self):

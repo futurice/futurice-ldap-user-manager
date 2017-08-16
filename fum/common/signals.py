@@ -10,7 +10,6 @@ from fum.common.middleware import get_current_request
 from fum.decorators import receiver_subclasses
 from fum.models import LDAPModel, Groups, Servers, Projects, Users, EMails, Resource, ldap_email, ldap_emailalias
 
-from pprint import pprint as pp
 import ldap
 import copy, logging
 
@@ -20,15 +19,56 @@ log = logging.getLogger(__name__)
 # post_save
 #
 
-@receiver(post_delete, sender=Projects)
-def projects_email(sender, *args, **kwargs):
+def project_default_email(sender, *args, **kwargs):
     from fum.projects.util import name_to_email
     instance = kwargs['instance']
     if kwargs.get('created', False):
-        e,_ = EMails.objects.get_or_create(
-                object_id=instance.pk,
-                content_type=ContentType.objects.get_for_model(instance),
-                address=name_to_email(instance.name))
+        kw = dict(object_id=instance.pk, content_type=ContentType.objects.get_for_model(instance))
+        if not EMails.objects.filter(**kw).exists():
+            e,_ = EMails.objects.get_or_create(address=name_to_email(instance.name), **kw)
+
+#
+# pre_save
+#
+
+def email_unique(sender, *args, **kwargs):
+    # remove any existing parent
+    instance = kwargs['instance']
+    if instance.alias:
+        return
+    kw = dict(object_id=instance.content_object.pk,
+              content_type=ContentType.objects.get_for_model(instance.content_object),
+              alias=False)
+    # when removing parent, its fine for aliases to remain as forwarding addresses
+    emails = EMails.objects.filter(**kw)
+    for email in emails:
+        try:
+            email.skip_ldap = True
+            email.delete()
+        except Exception as e:
+            print(e)
+            pass
+
+@receiver(post_save, sender=EMails)
+def save_email(sender, *args, **kwargs):
+    instance = kwargs['instance']
+    if instance.alias:
+        # proxyaddress = save_relation (add)
+        instance.content_object.ldap.save_relation(parent=instance.content_object, child=u'%s'%instance.address, field=ldap_emailalias(instance))
+    else:
+        # email = replace_relation (add/modify)
+        instance.content_object.ldap.replace_relation(parent=instance.content_object, child=u'%s'%instance.address, field=ldap_email(instance))
+        # create alias: username@futurice.com
+        if settings.EMAIL_DOMAIN in instance.address and isinstance(instance.content_object, Users):
+            username_email = dict(address='{0}{1}'.format(instance.content_object.username, settings.EMAIL_DOMAIN))
+            if not EMails.objects.filter(**username_email).exists():
+                try:
+                    em = EMails(content_object=instance.content_object,
+                                alias=True,
+                                **username_email)
+                    em.save()
+                except Exception as e:
+                    pass
 
 #
 # post_delete
@@ -39,8 +79,10 @@ def projects_email(sender, *args, **kwargs):
 def email_delete(sender, *args, **kwargs):
     instance = kwargs['instance']
     if instance.content_object:
+        if hasattr(instance, 'skip_ldap'):
+            return
         fn = ldap_email
-        if instance.alias_for:
+        if instance.alias:
             fn = ldap_emailalias
         try:
             instance.content_object.ldap.delete_relation(parent=instance.content_object, child=u'%s'%instance.address, field=fn(instance))
@@ -205,4 +247,5 @@ post_save.connect(changes_save, sender=Users)
 post_save.connect(changes_save, sender=EMails)
 post_save.connect(changes_save, sender=Resource)
 
-post_save.connect(projects_email, sender=Projects)
+post_save.connect(project_default_email, sender=Projects)
+pre_save.connect(email_unique, sender=EMails)

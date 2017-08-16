@@ -34,9 +34,6 @@ MEDIA_ROOT = '{DEPLOYMENT_ROOT}/media/'.format(**locals())
 PORTRAIT_THUMB_FOLDER = '%sportraits/thumb/' % MEDIA_ROOT
 PORTRAIT_FULL_FOLDER = '%sportraits/full/' % MEDIA_ROOT
 PORTRAIT_BADGE_FOLDER = os.path.join(MEDIA_ROOT, 'portraits/badge/')
-from pwd import getpwnam
-OWNER_UID = getpwnam(OWNER).pw_uid
-OWNER_GID = getpwnam(OWNER).pw_gid
 
 if LOGGING['handlers'].has_key('logfile'):
     del LOGGING['handlers']['logfile']

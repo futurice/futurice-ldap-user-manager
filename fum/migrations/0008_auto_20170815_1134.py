@@ -20,8 +20,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='emails',
-            name='alias_for',
-            field=models.ForeignKey(blank=True, to='fum.EMails', null=True),
+            name='alias',
+            field=models.BooleanField(default=False, db_index=True),
             preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='emails',
+            unique_together=set([]),
         ),
     ]

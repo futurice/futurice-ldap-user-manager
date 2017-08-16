@@ -196,7 +196,7 @@ class EMailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EMails
-        fields = ('id', 'address', 'alias_for')
+        fields = ('id', 'address', 'alias')
 
 #
 # SSH Keys

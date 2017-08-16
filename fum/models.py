@@ -39,8 +39,6 @@ from fum.util import get_project_models
 
 from rest_framework.authtoken.models import Token
 
-from pprint import pprint as pp
-
 log = logging.getLogger(__name__)
 
 WEEKDAY_FRIDAY = 4
@@ -58,7 +56,7 @@ def calculate_password_valid_days():
 
 def get_generic_email(email):
     if not isinstance(email, EMails):
-        email = email.all()
+        email = email.filter(alias=False)
         if email:
             return email[0]
         else:
@@ -744,7 +742,7 @@ def ldap_emailalias(i):
 class EMails(Mother):
     """ REMINDER: NOT AN LDAP MODEL """
     address = models.EmailField(max_length=254, blank=True, unique=True)
-    alias_for = models.ForeignKey('self', null=True, blank=True)
+    alias = models.BooleanField(default=False, blank=True, db_index=True)
 
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField(null=True)
@@ -762,7 +760,9 @@ class EMails(Mother):
 
     @property
     def aliases(self):
-        return EMails.objects.filter(alias_for=self)
+        return EMails.objects.filter(alias=True,
+                                     content_type=self.content_type,
+                                     object_id=self.object_id)
 
     def isEmailAddressValid(self, email):
         try:
@@ -772,9 +772,12 @@ class EMails(Mother):
         return True
 
     def clean(self):
-        super(self._meta.model, self).clean()
+        super(EMails, self).clean()
         if not self.isEmailAddressValid(self.address):
-            raise ValidationError("Email is not valid")
+            if not self.address: # allow empty
+                pass
+            else:
+                raise ValidationError("Email is not valid")
 
     def __unicode__(self):
         return u'%s'%(self.address)
@@ -782,23 +785,20 @@ class EMails(Mother):
     @transaction.atomic
     def save(self, *args, **kwargs):
         self.address = self.address.strip()
-        self.full_clean()
+        try:
+            self.full_clean()
+        except ValidationError, e:
+            ok_ = ['already exists',]
+            err_ = ['not valid','Enter a valid',]
+            if self.address:
+                if any(k in unicode(e) for k in ok_):
+                    pass
+                elif any(k in unicode(e) for k in err_):
+                    raise
+                else:
+                    raise
 
-        super(self._meta.model, self).save(*args, **kwargs)
-
-        if self.alias_for:
-            # proxyaddress = save_relation (add)
-            self.content_object.ldap.save_relation(parent=self.content_object, child=u'%s'%self.address, field=ldap_emailalias(self))
-        else:
-            # email = replace_relation (add/modify)
-            self.content_object.ldap.replace_relation(parent=self.content_object, child=u'%s'%self.address, field=ldap_email(self))
-            # create alias: username@futurice.com
-            if settings.EMAIL_DOMAIN in self.address and isinstance(self.content_object, Users):
-                username_email = dict(alias_for=self,
-                                      address='{0}{1}'.format(self.content_object.username, settings.EMAIL_DOMAIN),)
-                if not EMails.objects.filter(**username_email).exists():
-                    em = EMails(content_object=self.content_object, **username_email)
-                    em.save()
+        super(EMails, self).save(*args, **kwargs)
 
 class Resource(Mother):
     name = models.CharField(max_length=500)

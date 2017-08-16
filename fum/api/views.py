@@ -227,7 +227,7 @@ class LDAPViewSet(viewsets.ModelViewSet):
             if request.method =='DELETE':
                 for alias in items:
                     try:
-                        a = EMails.objects.get(address=alias, alias_for=email).delete()
+                        a = EMails.objects.get(address=alias, alias=True).delete()
                     except ValidationError as e:
                         return Response(e.messages, status=403)
                     except KeyError: 
@@ -236,7 +236,7 @@ class LDAPViewSet(viewsets.ModelViewSet):
             elif request.method == 'POST':
                 for alias in items:
                     try:
-                        a = EMails.objects.create(address=alias, alias_for=email)
+                        a = EMails.objects.create(address=alias, alias=True, content_object=obj)
                     except ValueError, e:
                         return Response("Please set the email before adding aliases", status=400)
                     except Exception, e:

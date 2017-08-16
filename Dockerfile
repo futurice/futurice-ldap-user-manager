@@ -37,9 +37,8 @@ RUN apt-get install -y libffi-dev && pip install -r requirements.txt
 
 COPY . /opt/app/
 
-RUN mkdir -p media/portraits/full media/portraits/thumb media/portraits/badge
-
-RUN mkdir /opt/static/ && mkdir /opt/media/
+RUN mkdir -p /opt/media/portraits/full /opt/media/portraits/thumb /opt/media/portraits/badge
+RUN mkdir /opt/static
 
 USER root
 ENV DJANGO_SETTINGS_MODULE fum.settings.base

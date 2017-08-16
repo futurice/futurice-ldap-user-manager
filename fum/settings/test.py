@@ -1,4 +1,3 @@
-import django.conf.global_settings as DEFAULT_SETTINGS
 import sys
 from base import *
 

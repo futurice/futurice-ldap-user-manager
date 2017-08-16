@@ -25,8 +25,6 @@ DATABASES = {
 }
 
 OWNER = getpass.getuser()
-OWNER_UID = getpwnam(OWNER).pw_uid
-OWNER_GID = getpwnam(OWNER).pw_gid
 
 EMAIL_PORT = 25
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -259,6 +257,8 @@ DJANGO_HISTORY_SETTINGS = {
 'GET_CURRENT_REQUEST': ('fum.common.middleware', 'get_current_request'),
 }
 DJANGO_HISTORY_TRACK = False
+
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 try:
     # add any secrets here; local_settings needs to be somewhere in PYTHONPATH (eg. project-root, user-root)
