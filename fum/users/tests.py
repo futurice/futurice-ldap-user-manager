@@ -122,16 +122,16 @@ class UserTest(LdapTransactionSuite):
     def test_user_email(self):
         self.assertEqual(self.user.email.all().count(), 0)
         self.user.email.add(EMails(address='pentti@futurice.com', content_object=self.user))
-        self.assertEqual(self.user.email.all().count(), 1)
+        self.assertEqual(self.user.email.all().count(), 2) # primary + alias
         self.assertEqual(self.ldap_val('mail', self.user), ['pentti@futurice.com'])
         self.user.title = 'something else'
         self.user.save()
-        self.assertEqual(self.user.email.all().count(), 1)
+        self.assertEqual(self.user.email.all().count(), 2)
         self.assertEqual(self.ldap_val('mail', self.user), ['pentti@futurice.com'])
 
         self.user.email.add(EMails(address='pentti2@futurice.com', content_object=self.user))
-        self.assertEqual(self.user.email.all().count(), 1)
-        self.assertEqual(self.user.email.all()[0].address, 'pentti2@futurice.com')
+        self.assertEqual(self.user.email.all().count(), 2)
+        self.assertEqual(self.user.email.filter(alias=False)[0].address, 'pentti2@futurice.com')
         self.assertEqual(self.ldap_val('mail', self.user), ['pentti2@futurice.com'])
         self.user.email = [] # unsetting email in API might be problematic :knock wood-not so
         self.assertEqual(self.user.email.all().count(), 0)
@@ -220,7 +220,6 @@ class UserTest(LdapTransactionSuite):
 
 
     def test_bad_password(self):
-        # TODO: ldap-environment (+mock) that fails when using bad password
         password='bad'
         u = self.save_safe(Users,
                 kw=dict(first_name="Bad", last_name="Password", username='bpas', google_status=Users.ACTIVEPERSON),

@@ -39,8 +39,6 @@ from fum.util import get_project_models
 
 from rest_framework.authtoken.models import Token
 
-from pprint import pprint as pp
-
 log = logging.getLogger(__name__)
 
 WEEKDAY_FRIDAY = 4
@@ -58,7 +56,7 @@ def calculate_password_valid_days():
 
 def get_generic_email(email):
     if not isinstance(email, EMails):
-        email = email.all()
+        email = email.filter(alias=False)
         if email:
             return email[0]
         else:
@@ -731,16 +729,26 @@ class Projects(BaseGroup):
     def get_absolute_url(self):
         return reverse('projects_detail', kwargs={'slug':self.name})
 
+def ldap_email(i):
+    i = copy.copy(i)
+    i.ldap_field = 'mail'
+    return i
+
+def ldap_emailalias(i):
+    i = copy.copy(i)
+    i.ldap_field = 'proxyaddress'
+    return i
+
 class EMails(Mother):
     """ REMINDER: NOT AN LDAP MODEL """
     address = models.EmailField(max_length=254, blank=True, unique=True)
+    alias = models.BooleanField(default=False, blank=True, db_index=True)
 
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField(null=True)
     content_object = generic.GenericForeignKey('content_type', 'object_id')
 
     restricted_fields = ['address']
-    ldap_field = 'mail'
 
     @property
     def name(self):
@@ -752,7 +760,9 @@ class EMails(Mother):
 
     @property
     def aliases(self):
-        return EMailAliases.objects.filter(parent=self)
+        return EMails.objects.filter(alias=True,
+                                     content_type=self.content_type,
+                                     object_id=self.object_id)
 
     def isEmailAddressValid(self, email):
         try:
@@ -764,93 +774,28 @@ class EMails(Mother):
     def clean(self):
         super(EMails, self).clean()
         if not self.isEmailAddressValid(self.address):
-            if not self.address: # allow empty; TODO: have it remove EMail
+            if not self.address: # allow empty
                 pass
             else:
                 raise ValidationError("Email is not valid")
+
+    def __unicode__(self):
+        return u'%s'%(self.address)
     
     @transaction.atomic
     def save(self, *args, **kwargs):
         self.address = self.address.strip()
-        # DANGER: For GenericRelation as OneToOne-emulation to work (and EMailAliases to stay intact)
-        # - UNIQUEness ValidationError is waived
-        # - UPDATE first, on failure INSERT
         try:
             self.full_clean()
         except ValidationError, e:
-            if 'not valid' in unicode(e):
-                raise
-            elif 'Enter a valid' in unicode(e):
-                raise
-            elif 'already exists' in unicode(e):
-                pass
-            else:
-                raise
-        try:
-            existing_email = EMails.objects.filter(object_id=self.object_id, content_type=self.content_type)
-            res = existing_email.update(address=self.address)
-            if res==0:
-                raise Exception
-            existing_email = existing_email[0]
-        except IntegrityError, e:
-            raise ValidationError("Email is taken")
-        except Exception, e:
-            existing_email = None
-            super(EMails, self).save(*args, **kwargs)
-        email = existing_email or self
-        try:
-            # After super.save() no failures allowed.
-            self.content_object.ldap.replace_relation(parent=self.content_object, child=u'%s'%self.address, field=self)
-            # create identical alias for username@futurice.com
-            if settings.EMAIL_DOMAIN in self.address and isinstance(self.content_object, Users):
-                em, _ = EMailAliases.objects.get_or_create(parent=email, address='{0}{1}'.format(self.content_object.username, settings.EMAIL_DOMAIN))
-        except Exception, e:
-            print "EMails",e
+            ok_ = ['already exists',]
+            if self.address:
+                if any(k in unicode(e) for k in ok_):
+                    pass
+                else:
+                    raise
 
-    class Meta:
-        unique_together = ('content_type', 'object_id') # OneToOne emulation for GenericForeignKey
-
-class EMailAliases(Mother):
-    """ REMINDER: NOT AN LDAP MODEL
-
-    Aliases are forwarding addresses that should be unique.
-    For forwarding a Group email, add a User to it, not an email address.
-    """
-    address = models.EmailField(max_length=254, unique=True)
-    parent = models.ForeignKey(EMails)
-
-    restricted_fields = ['address']
-    ldap_field = 'proxyaddress'
-
-    @staticmethod
-    def get_by_name():
-        return 'address'
-
-    @property
-    def name(self):
-        return self.address
-
-    def clean(self):
-        if EMailAliases.objects.filter(address=self.address):
-            raise ValidationError('Alias already in use')
-
-        existing_email = EMails.objects.filter(address=self.address).first()
-        if existing_email and existing_email.address.strip() == self.address.strip():
-            raise ValidationError('Alias conflicts with an existing Email address')
-
-        super(EMailAliases, self).clean()
-
-    @transaction.atomic
-    def save(self, *args, **kwargs):
-        # all model fields always required, manual clean here should be fine: https://code.djangoproject.com/ticket/13100
-        self.full_clean()
-        ret = super(EMailAliases, self).save(*args, **kwargs)
-        try:
-            # After super.save() no failures allowed.
-            self.parent.content_object.ldap.save_relation(parent=self.parent.content_object, child=u'%s'%self.address, field=self)
-        except Exception, e:
-            pass
-        return ret
+        super(EMails, self).save(*args, **kwargs)
 
 class Resource(Mother):
     name = models.CharField(max_length=500)

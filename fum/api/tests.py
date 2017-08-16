@@ -14,6 +14,7 @@ from django.test.utils import override_settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models.signals import pre_delete, post_delete, post_init, post_save, m2m_changed
+from django.db import IntegrityError
 
 from mock import patch, MagicMock, PropertyMock
 from mockldap import MockLdap
@@ -23,12 +24,11 @@ from ldap import modlist
 
 from fum.ldap_helpers import test_user_ldap, ldap_cls, PoolLDAPBridge, LDAPBridge
 from fum.models import (
-    Users, Servers, Groups, Projects, EMails, EMailAliases, BaseGroup,
+    Users, Servers, Groups, Projects, EMails, BaseGroup,
     Resource, SSHKey,
 )
 
 import datetime, json, sys, copy, os, time
-from pprint import pprint as pp
 
 from fum.api.changes import changes_save, rest_reverse
 from fum.common.ldap_test_suite import LdapSuite, LdapTransactionSuite, random_ldap_password
@@ -350,6 +350,8 @@ class LdapSanityCase(TestCase):
         self.mockldap.stop()
 
     def test_signals_mocked(self):
+        if 'test_live' in os.environ.get('DJANGO_SETTINGS_MODULE'):
+            return
         # ReconnectingLDAPBridge re-uses initial connection
         option_count = len(settings.LDAP_CONNECTION_OPTIONS)
         tls = ['initialize'] + ['set_option']*option_count + ['initialize']
@@ -673,10 +675,12 @@ class ApiTestCase(LdapTransactionSuite):
         self.assertEqual(project.get_email().address, group_mail)
         self.assertEqual(self.ldap_val('mail', project), [group_mail])
 
-        response = self.client.post("/api/projects/%s/"%project.name,
-                {"email": mail,},
-                HTTP_X_HTTP_METHOD_OVERRIDE='PATCH',)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        with self.assertRaises(IntegrityError):
+            response = self.client.post("/api/projects/%s/"%project.name,
+                    {"email": mail,},
+                    HTTP_X_HTTP_METHOD_OVERRIDE='PATCH',)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
         self.assertEqual(project.get_email().address, group_mail)
         self.assertEqual(self.ldap_val('mail', project), [group_mail])
 
@@ -751,7 +755,8 @@ class ApiTestCase(LdapTransactionSuite):
         response = self.c.delete("/api/users/%s/"%name)
         self.assertEquals(response.status_code, 204)
         with self.assertRaises(KeyError):
-            self.ldap_val('mail', user)
+            self.ldap_val('mail', user) # TODO: returns [] for empty ldap entry
+            self.ldap_val('cn', user) # KeyError
 
         response = self.c.get("/api/users/", {})
         self.assertNotContains(response, name)

@@ -30,3 +30,5 @@ mockldap-fork==0.1.6
 slumber-fork==0.6.3
 raven==5.3.1
 procboy==0.1.4
+
+uwsgi

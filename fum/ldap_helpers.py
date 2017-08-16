@@ -77,7 +77,7 @@ class LDAPBridge(object):
         self._connection_bound = False
         self.settings = AttrDict()
         self.settings.uri = kwargs.get('uri', settings.LDAP_CONNECTION.get('uri'))
-        self.settings.START_TLS = True
+        self.settings.START_TLS = settings.USE_TLS
         self.settings.CONNECTION_OPTIONS = kwargs.get('LDAP_CONNECTION_OPTIONS', None) or settings.LDAP_CONNECTION_OPTIONS
         self.settings.BIND_DN = kwargs.get('BIND_DN', None) or settings.LDAP_CONNECTION.get('bind_dn')
         self.settings.BIND_PASSWORD = kwargs.get('BIND_PASSWORD', None) or settings.LDAP_CONNECTION.get('bind_pwd')
