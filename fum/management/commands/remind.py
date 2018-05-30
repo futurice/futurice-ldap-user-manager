@@ -75,11 +75,9 @@ class Command(BaseCommand):
                     body = get_template('emails/password_reminder.txt')
                     days_left = (user.password_expires_date - dtnow).days
                     subject = "%s password will expire in %d day%s."%(settings.COMPANY_NAME, days_left, "s" if days_left!=1 else "")
-                
                     if days_left < 0:
+                        log.info("password expired: %s"%(user))
                         user.set_ldap_password(random_ldap_password())
-                        user.expire_password()
-                        user.save()
                         self.send(user, "%s password has expired."%(settings.COMPANY_NAME), get_template('emails/password_expired.txt'), dry)
                     elif days_left <= 7:
                         self.send(user, subject, body, dry)

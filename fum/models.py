@@ -383,7 +383,7 @@ class Users(LDAPGroupModel):
 
     def in_group(self, group, user=None):
         user = user or self
-        return user.username in group.users.all().order_by().values_list('username', flat=True)
+        return user.username in list(group.users.all().order_by().values_list('username', flat=True))
 
     def update_password_fields(self, password):
         self.google_password = "" + hashlib.sha1(password.encode("utf8")).hexdigest()
