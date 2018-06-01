@@ -248,7 +248,7 @@ class BaseGroup(LDAPGroupModel):
     created = models.DateTimeField(null=True, blank=True, default=now)
     editor_group = models.ForeignKey('Groups', null=True, blank=True)
     users = UsersManyField('fum.Users', null=True, blank=True, related_name="%(app_label)s_%(class)s")
-    
+
     ldap_id_field="cn"
     ldap_fields = {
                 'description':'description',}
@@ -480,7 +480,7 @@ class Users(LDAPGroupModel):
     @staticmethod
     def get_by_name():
         return 'username'
-    
+
     @property
     def name(self):
         return self.username
@@ -537,12 +537,12 @@ class Users(LDAPGroupModel):
             for alias in email.aliases:
                 aliases.append(alias.address)
         return aliases
-    
+
     def set_ldap_password(self, password):
         self.password = password
         self.update_password_fields(password)
         self.save()
-    
+
     ldap_id_field="uid"
     ldap_fields = {
                 'username': ['uid','ntUserDomainId'],
@@ -642,6 +642,12 @@ class Users(LDAPGroupModel):
         #
         # Field validations
         #
+        #Remove extra characters from phone numbers
+        if self.phone1:
+            self.phone1 = re.sub(r"[^0-9+]","",str(self.phone1))
+        if self.phone2:
+            self.phone2 = re.sub(r"[^0-9+]","",str(self.phone2))
+
         if self.phone1 and len(self.phone1)>0 and not re.match(r'^(\+|00)[\d ]+$', str(self.phone1)):
             raise ValidationError('Invalid phonenumber. (Phone 1)')
 
@@ -678,7 +684,7 @@ class Users(LDAPGroupModel):
     class Meta:
         ordering = ['first_name', 'last_name']
 
-        
+
 class Groups(BaseGroup):
     ldap_range = [15000, 19999]
     def get_absolute_url(self):
@@ -768,7 +774,7 @@ class EMails(Mother):
                 pass
             else:
                 raise ValidationError("Email is not valid")
-    
+
     @transaction.atomic
     def save(self, *args, **kwargs):
         self.address = self.address.strip()
