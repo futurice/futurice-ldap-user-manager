@@ -9,7 +9,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.memory = 1024
   end
 
-  config.vm.network "forwarded_port", guest: 8000, host: 8000
+  config.vm.network "forwarded_port", guest: 8000, host: 8008
 
   config.vm.provision "shell", path: "vagrant/provision-root.sh"
   config.vm.provision "shell", privileged: false,

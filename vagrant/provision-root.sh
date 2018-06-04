@@ -12,4 +12,6 @@ VAGRANT_DIR="$ROOT_DIR"/vagrant
 
 # To run ‘datamigrate’ at provision-*.sh time, we need these commands
 # which also run at always-*.sh time.
+pip install --upgrade setuptools
+pip install --upgrade pip
 pip install -r "$ROOT_DIR"/requirements.txt

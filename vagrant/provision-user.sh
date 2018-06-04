@@ -13,8 +13,7 @@ cd /vagrant
 mkdir -p media/portraits/full media/portraits/thumb media/portraits/badge
 
 # see the comment in always-user.sh for the environment variables
-Va=a Vb=b Vc=c \
-	python manage.py test --settings=fum.settings.test --noinput fum
+#Va=a Vb=b Vc=c python manage.py test --settings=fum.settings.test --noinput fum
 
 ./manage.py migrate --noinput
 

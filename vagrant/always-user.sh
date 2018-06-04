@@ -7,6 +7,7 @@ trap "echo $0 failed because a command in the script failed" ERR
 
 cd /vagrant
 
+echo "NPM version: $(npm -version)"
 npm install
 
 mkdir -p media/portraits/full media/portraits/thumb media/portraits/badge
@@ -22,8 +23,7 @@ mkdir -p media/portraits/full media/portraits/thumb media/portraits/badge
 # the problem.
 #
 # TODO: understand the cause of this.
-Va=a Vb=b Vc=c \
-	python manage.py test --settings=fum.settings.test --noinput fum
+# Va=a Vb=b Vc=c python manage.py test --settings=fum.settings.test --noinput fum
 
 ./manage.py migrate --noinput
 ./manage.py collectstatic --noinput
