@@ -186,7 +186,7 @@
         <div id="password-character-groups" class="alert alert-info">Password must have characters from at least 3 character groups (a-z, A-Z, 0-9, special)</div>
         <div id="passwords-matching" class="alert alert-info" style="display:none;">Passwords don't match</div>
     {% if not sudo %}
-        
+
         <label>Current password</label>
         <input type="password" id="password-current"></input>
     {% endif %}
@@ -272,9 +272,9 @@
 		<td id="profile-username">{{object.username}}</td>
 	</tr>
 
-	<tr>
+	<!--tr>
         {% include "common/xeditable.html" with field="title" full="Title" api=adetail %}
-	</tr>
+	</tr-->
 
 	<tr>
         {% include "common/xeditable.html" with field="phone1" full="Phone 1" api=adetail %}
@@ -285,20 +285,22 @@
 	</tr>
 
 	<tr>
+    <!--
         {% include "common/xeditable.html" with field="github" full="GitHub username" api=adetail %}
+      -->
 	</tr>
 
-	<tr>
+	<!--tr>
         {% include "common/xeditable.html" with field="flowdock_uid" full="Flowdock UID" api=adetail %}
-	</tr>
+	</tr-->
 
-	<tr>
+	<!--tr>
         {% include "common/xeditable.html" with field="planmill_uid" full="PlanMill UID" api=adetail %}
-	</tr>
+	</tr-->
 
-	<tr>
+	<!--tr>
         {% include "common/xeditable.html" with field="skype" full="Skype" api=adetail %}
-	</tr>
+	</tr-->
 
     <tr>
         {% include "common/xeditable.html" with field="email" field_value="get_email_editable" full="Email" api=adetail %}
@@ -312,6 +314,7 @@
         {% include "users/ssh_keys.html" with user=object settings=settings request=request sudo=sudo only %}
     </tr>
 
+<!--
     <tr>
         <td class="infofield">Supervisor:</td>
         <td>
@@ -321,9 +324,10 @@
             {% endif %}
         </td>
     </tr>
+-->
 
 	<tr>
-        {% include "common/xeditable.html" with field="hr_number" full="HR number" api=adetail %}
+    <!--{% include "common/xeditable.html" with field="hr_number" full="HR number" api=adetail %}-->
 	</tr>
 
     <tr>
