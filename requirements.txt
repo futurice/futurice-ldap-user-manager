@@ -23,6 +23,7 @@ python-memcached==1.53
 diff-match-patch==20120106
 ldappool==1.0
 sshpubkeys==1.0.6
+Tornado==4.2.1
 
 django_js_utils_ng==0.5.futu
 django-history==0.2.2
