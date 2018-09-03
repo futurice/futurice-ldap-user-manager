@@ -58,7 +58,7 @@ INSTALL
 =======
 
 ```
-apt-get install build-essential python-setuptools python-dev libldap2-dev libsasl2-dev libssl-dev libxslt1-dev
+apt-get install build-essential python-setuptools python-dev libldap2-dev libsasl2-dev libssl-dev libxslt1-dev libffi-dev libpq-dev
 pip install -r requirements.txt
 npm install
 
