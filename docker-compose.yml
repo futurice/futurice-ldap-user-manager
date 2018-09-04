@@ -1,0 +1,38 @@
+version: "3.2"
+services:
+  fum:
+    container_name: fum-dev-serv
+    build:
+      context: ./
+      dockerfile: Dockerfile-dev
+    volumes:
+      - .:/app
+    working_dir: /app
+    hostname: fum.example.com
+    ports:
+      - 8000:8000
+    expose:
+      - 8000
+
+    # -ti
+    tty: true
+    stdin_open: true
+  ldap:
+    container_name: fum-dev-ldap
+    image: minkwe/389ds:latest
+    hostname: ldap.example.com
+    volumes:
+      - ./ldap/data:/var/lib/dirsrv:Z
+      - ./ldap/config:/etc/dirsrv:Z
+      - ./ldap/logs:/var/log/dirsrv:Z
+      - ./ldap/certs:/certs:Z
+    environment:
+      DIR_SUFFIX: dc=futurice,dc=com
+      DIR_ADMIN_USERNAME: "myadmin"
+      DIR_MANAGER_PASSWORD: "Admin123"
+      DIR_ADMIN_UID: "15000"
+      DIR_USERS_HOME: "/users"
+    ports:
+      - 389:389
+      - 636:636
+    restart: always

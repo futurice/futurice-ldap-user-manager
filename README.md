@@ -53,6 +53,36 @@ procboy
 ```
 View [localhost:8000](http://localhost:8000)
 
+docker-compose based dev
+========================
+
+```
+docker-compose up
+```
+
+In another terminal
+
+```
+docker attach fum-dev-serv
+
+$ sh in-docker.sh
+```
+
+### Hints:
+
+```python
+LDAP_CONNECTION = {
+    'uri': "ldap://ldap",
+    'bind_dn': "myadmin",
+    'bind_pwd': "Admin123",
+    'base_dn': "dc=futurice,dc=com",
+}
+USE_TLS=False
+```
+
+### Questions
+
+LDAP extensions?
 
 INSTALL
 =======

@@ -106,7 +106,8 @@ class Command(BaseCommand):
         ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, 0)
 
         con = ldap.initialize(ldap_server)
-        con.start_tls_s()
+        # if USE_TLS
+        # con.start_tls_s()
         con.simple_bind_s(dn,pw)
 
         # get users from ldap
