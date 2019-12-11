@@ -26,7 +26,7 @@ sshpubkeys==1.0.6
 Tornado==4.2.1
 chardet==3.0.4
 idna==2.7
-urllib3==1.23
+urllib3==1.24.2
 
 django_js_utils_ng==0.5.futu
 django-history==0.2.2
