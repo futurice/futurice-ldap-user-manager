@@ -306,9 +306,9 @@
         {% include "common/xeditable.html" with field="email" field_value="get_email_editable" full="Email" api=adetail %}
     </tr>
 
-    <tr>
+    <!--tr>
         {% include "common/xeditable_search.html" with field="aliases" full="Aliases" api=adetail %}
-    </tr>
+    </tr-->
 
     <tr>
         {% include "users/ssh_keys.html" with user=object settings=settings request=request sudo=sudo only %}
@@ -392,6 +392,7 @@
         data-searchdetail="groups_detail">
 
 		<h4>Groups:</h4>
+		<h4 style="color:red">Mailing list management moved to groups.google.com</h4>
 		<div class="input-prepend">
 		  	<span class="add-on">+</span>
 			<input type="text" class="search" />
