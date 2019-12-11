@@ -13,6 +13,7 @@
 {% else %}
 <h3>{{ object.name}}</h3>
 {% endif %}
+<h3 style="color:red;">Mailing list management moved to groups.google.com</h3>
 <br>
 
 {% if user.get_fum_user not in object.users.all %}
@@ -32,21 +33,21 @@
         {% include "common/xeditable.html" with field="editor_group" full="Editor group" api=adetail datatype='select2' select=glist|add:'?limit=0&fields=name' %}
 	</tr>
 
-	<tr>
+	<!--tr>
         {% include "common/xeditable.html" with field="email" field_value="get_email_editable" full="Email" api=adetail %}
-    </tr>
+    </tr-->
 
 	<tr>
-    <!--
+	<!--
         {% include "common/xeditable_search.html" with field="aliases" full="Aliases" api=adetail %}
-    -->
+	-->
     </tr>
-	<tr>
+	<!--tr>
         <td class="infofield"></td>
         <td>
             <b>NOTE:</b> Users of the group will automatically be forwarded emails
         </td>
-    </tr>
+    </tr-->
 
     <tr>
         <td class="infofield"></td>
