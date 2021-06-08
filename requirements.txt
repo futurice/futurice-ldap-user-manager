@@ -18,7 +18,7 @@ pysolr==3.0.6
 lxml==3.2.3
 smbpasswd==1.0.2
 mock==1.0.1
-Pillow==2.7.0
+Pillow==8.2.0
 python-memcached==1.53
 diff-match-patch==20120106
 ldappool==1.0
